@@ -1,0 +1,42 @@
+{
+  "name": "robots-txt-support",
+  "displayName": "Robots.txt support",
+  "description": "VS Code extension for robots.txt language support.",
+  "version": "0.0.1",
+  "publisher": "yoshi389111",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yoshi389111/vscode-robots-txt-support"
+  },
+  "engines": {
+    "vscode": "^1.120.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "robots-txt",
+        "aliases": [
+          "robots.txt",
+          "robots-txt"
+        ],
+        "extensions": [
+          "robots.txt"
+        ],
+        "filenames": [
+          "robots.txt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "robots-txt",
+        "scopeName": "text.robots-txt",
+        "path": "./syntaxes/robots-txt.tmLanguage.json"
+      }
+    ]
+  }
+}

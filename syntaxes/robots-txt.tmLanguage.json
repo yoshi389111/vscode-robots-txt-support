@@ -1,0 +1,115 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "robots.txt",
+	"patterns": [
+		{
+			"include": "#user-agent"
+		},
+		{
+			"include": "#disallow"
+		},
+		{
+			"include": "#allow"
+		},
+		{
+			"include": "#sitemap"
+		},
+		{
+			"include": "#crawl-delay"
+		},
+		{
+			"include": "#unknown-directives"
+		},
+		{
+			"include": "#comments"
+		}
+	],
+	"repository": {
+		"user-agent": {
+			"match": "^\\s*(?i:(user-agent))\\s*(:)\\s*([^#\\s]*)?",
+			"captures": {
+				"1": {
+					"name": "markup.heading.2.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				},
+				"3": {
+					"name": "string.unquoted.robots-txt"
+				}
+			}
+		},
+		"disallow": {
+			"match": "^\\s*(?i:(disallow))\\s*(:)\\s*([^#\\s]*)?",
+			"captures": {
+				"1": {
+					"name": "keyword.control.disallow.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				},
+				"3": {
+					"name": "string.regexp.robots-txt"
+				}
+			}
+		},
+		"allow": {
+			"match": "^\\s*(?i:(allow))\\s*(:)\\s*([^#\\s]*)?",
+			"captures": {
+				"1": {
+					"name": "keyword.control.allow.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				},
+				"3": {
+					"name": "string.regexp.robots-txt"
+				}
+			}
+		},
+		"sitemap": {
+			"match": "^\\s*(?i:(sitemap))\\s*(:)\\s*([^#\\s]*)?",
+			"captures": {
+				"1": {
+					"name": "keyword.other.sitemap.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				},
+				"3": {
+					"name": "markup.underline.link.robots-txt"
+				}
+			}
+		},
+		"crawl-delay": {
+			"match": "^\\s*(?i:(crawl-delay))\\s*(:)\\s*([^#\\s]*)?",
+			"captures": {
+				"1": {
+					"name": "keyword.operator.crawl-delay.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				},
+				"3": {
+					"name": "constant.numeric.robots-txt"
+				}
+			}
+		},
+		"unknown-directives": {
+			"match": "^\\s*([a-zA-Z_][-a-zA-Z0-9_]*)\\s*(:)",
+			"captures": {
+				"1": {
+					"name": "invalid.illegal.unknown-directive.robots-txt"
+				},
+				"2": {
+					"name": "punctuation.colon.separator.robots-txt"
+				}
+			}
+		},
+		"comments": {
+			"match": "#.*$",
+			"name": "comment.line.number-sign.robots-txt"
+		}
+	},
+	"scopeName": "text.robots-txt"
+}
