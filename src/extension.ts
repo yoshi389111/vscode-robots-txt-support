@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { RobotsTxtCompletionItemProvider } from "./completion";
 import { RobotsTxtFoldingRangeProvider } from "./folding";
+import { RobotsTxtSignatureHelpProvider } from "./signature";
 import { collectDiagnostics } from "./diagnostic";
 
 const LANGUAGE_ID = "robots-txt";
@@ -19,6 +20,15 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerFoldingRangeProvider(
       LANGUAGE_ID,
       new RobotsTxtFoldingRangeProvider(),
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerSignatureHelpProvider(
+      LANGUAGE_ID,
+      new RobotsTxtSignatureHelpProvider(),
+      " ",
+      ":",
     ),
   );
 
