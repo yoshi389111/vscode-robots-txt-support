@@ -110,7 +110,10 @@ export async function collectDiagnostics(
       } else if (!/^\w+(\&\w+)*$/.test(params[0]!)) {
         // The directive value is invalid
         addDiagnostic("RBT505E", directiveValue.range);
-      } else if (params.length === 2 && !isValidUri(params[1] ?? "")) {
+      } else if (
+        params.length === 2 &&
+        !/^\/[-#%&*./0-9=?A-Z_a-z~]+\$?$/.test(params[1]!)
+      ) {
         // The directive value is invalid
         addDiagnostic("RBT505E", directiveValue.range);
       }
