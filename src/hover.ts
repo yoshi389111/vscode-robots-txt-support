@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { parseLine } from "./lineparser";
 import * as constants from "./constants";
 import { DIRECTIVE_INFOS } from "./directiveInfo";
+import { CRAWLER_INFOS, CrawlerInfo } from "./crawlerInfo";
 
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   public provideHover(
@@ -11,6 +12,7 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   ): vscode.ProviderResult<vscode.Hover> {
     const parsedLine = parseLine(document.lineAt(position.line));
     const directiveName = parsedLine.name?.text.toLowerCase();
+    const crawlerKey = parsedLine.value?.text.toLowerCase();
 
     if (directiveName === undefined) {
       // empty line or comment-only line, just ignore
@@ -23,28 +25,83 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
       return null;
     }
 
+    const crawlerInfo =
+      directiveName === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
+
     const md = new vscode.MarkdownString();
-    md.appendCodeblock(directive.example, constants.LANGUAGE_ID);
+
+    // example (code block)
+    const example = crawlerInfo
+      ? `User-agent: ${crawlerInfo.name}`
+      : directive.example;
+    md.appendCodeblock(example, constants.LANGUAGE_ID);
+
+    // description
     md.appendMarkdown(`${escapeMarkdown(directive.description)}\n\n`);
+    // details
     if (directive.details.length > 0) {
       md.appendMarkdown(directive.details.map(escapeMarkdown).join("  \n"));
       md.appendMarkdown("\n\n");
     }
-    if (directive.reference) {
-      md.appendMarkdown("**References:**\n\n");
-      directive.reference.forEach((ref) => {
-        md.appendMarkdown(`- [${escapeMarkdown(ref.text)}](${ref.url})\n`);
-      });
-      md.appendMarkdown("\n");
-    }
+    // parameters
     md.appendMarkdown("**Parameters:**\n\n");
     for (const param of directive.params) {
       md.appendMarkdown(
         `- \`${param.label}\` ― ${escapeMarkdown(param.documentation)}\n`,
       );
     }
+    md.appendMarkdown("\n");
+    // crawler
+    if (crawlerInfo) {
+      md.appendMarkdown("**Crawler:**\n\n");
+      md.appendMarkdown(
+        `- ${escapeMarkdown(crawlerInfo.name)} ― ${escapeMarkdown(crawlerInfo.description)}\n\n`,
+      );
+    }
+    // reference
+    if (directive.reference || crawlerInfo?.url) {
+      md.appendMarkdown("**References:**\n\n");
+      directive.reference?.forEach((ref) => {
+        md.appendMarkdown(`- [${escapeMarkdown(ref.text)}](${ref.url})\n`);
+      });
+      if (crawlerInfo?.url) {
+        md.appendMarkdown(
+          `- [${escapeMarkdown(crawlerInfo.name)}](${crawlerInfo.url})\n`,
+        );
+      }
+      md.appendMarkdown("\n");
+    }
     return new vscode.Hover(md);
   }
+}
+
+function getCrawlerInfo(
+  crawlerKey: string | undefined,
+): CrawlerInfo | undefined {
+  if (!crawlerKey) {
+    return undefined;
+  }
+  const crawlerInfo = CRAWLER_INFOS[crawlerKey];
+  if (!crawlerInfo) {
+    return undefined;
+  }
+
+  const baseCrawlerInfo = crawlerInfo.baseKey
+    ? CRAWLER_INFOS[crawlerInfo.baseKey]
+    : undefined;
+
+  if (!baseCrawlerInfo) {
+    return crawlerInfo;
+  }
+
+  // merge with base crawler info
+  const mergedInfo: CrawlerInfo = Object.assign(
+    {
+      ...baseCrawlerInfo,
+    },
+    crawlerInfo,
+  );
+  return mergedInfo;
 }
 
 /**
