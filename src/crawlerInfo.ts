@@ -1,0 +1,328 @@
+/**
+ * Defines the structure for crawler information and a list of known crawlers with their details.
+ */
+export interface CrawlerInfo {
+  /** Name of the crawler. */
+  name: string;
+  /** Description of the crawler. */
+  description: string;
+  /** URL for more information about the crawler. */
+  url?: string;
+  /** Prefix of completion item. lowercase */
+  prefix?: string;
+  /** Base key. lowercase */
+  baseKey?: string;
+  /** List of directives supported by the crawler. */
+  directives?: string[];
+  /** Whether to hide hover information for the crawler. */
+  hiddenHover?: boolean;
+  /** Whether to hide completion items for the crawler. */
+  hiddenCompletion?: boolean;
+}
+
+// ref. <https://github.com/monperrus/crawler-user-agents/blob/master/crawler-user-agents.json>
+/**
+ * List of known crawlers and their information.
+ * This is not exhaustive, but includes some of the most common ones.
+ * The keys are lowercased for easier matching.
+ */
+export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
+  "*": {
+    name: "*",
+    description:
+      "Matches all user-agents. This is a wildcard that applies to any crawler not explicitly listed.",
+  },
+
+  /* Google */
+  googlebot: {
+    name: "Googlebot",
+    description: "Google's crawler for indexing.",
+    url: "http://www.google.com/bot.html",
+    directives: ["disallow", "allow", "sitemap"],
+  },
+  "googlebot-image": {
+    name: "Googlebot-Image",
+    description: "Google's crawler for indexing images.",
+    prefix: "googlebot",
+    baseKey: "googlebot",
+  },
+  "googlebot-video": {
+    name: "Googlebot-Video",
+    description: "Google's crawler for indexing videos.",
+    prefix: "googlebot",
+    baseKey: "googlebot",
+  },
+  "googlebot-news": {
+    name: "Googlebot-News",
+    description: "Google's crawler for indexing news.",
+    prefix: "googlebot",
+    baseKey: "googlebot",
+  },
+  "storebot-google": {
+    name: "Storebot-Google",
+    description: "Google's crawler for indexing store content.",
+    baseKey: "googlebot",
+  },
+  "google-": {
+    name: "Google-",
+    description: "placeholder for Google-Xxx.",
+    hiddenHover: true,
+  },
+  "google-inspectiontool": {
+    name: "Google-InspectionTool",
+    description: "Google's crawler for search testing tools.",
+    prefix: "google-",
+    baseKey: "googlebot",
+  },
+  "google-cloudvertexbot": {
+    name: "Google-CloudVertexBot",
+    description: "Google's crawler for Vertex AI Agents.",
+    prefix: "google-",
+    baseKey: "googlebot",
+  },
+  "google-extended": {
+    name: "Google-Extended",
+    description: "Google's crawler for Gemini Apps and Vertex AI.",
+    prefix: "google-",
+    baseKey: "googlebot",
+  },
+  googleother: {
+    name: "GoogleOther",
+    description: "Google's crawler for internal research and development.",
+    baseKey: "googlebot",
+  },
+  "googleother-image": {
+    name: "GoogleOther-Image",
+    description: "Google's crawler for internal research and development.",
+    prefix: "googleother",
+    baseKey: "googlebot",
+  },
+  "googleother-video": {
+    name: "GoogleOther-Video",
+    description: "Google's crawler for internal research and development.",
+    prefix: "googleother",
+    baseKey: "googlebot",
+  },
+
+  /* Microsoft */
+  bingbot: {
+    name: "Bingbot",
+    description: "Microsoft's crawler for indexing.",
+    url: "http://www.bing.com/bingbot.htm",
+    directives: ["disallow", "allow", "sitemap"],
+  },
+  adidxbot: {
+    name: "AdIdxBot",
+    description: "Microsoft's crawler for qualifying ads.",
+    baseKey: "bingbot",
+  },
+  microsoftpreview: {
+    name: "MicrosoftPreview",
+    description: "Microsoft's crawler for previewing content.",
+    baseKey: "bingbot",
+  },
+  bingvideopreview: {
+    name: "BingVideoPreview",
+    description: "Microsoft's crawler for previewing video.",
+    baseKey: "bingbot",
+  },
+
+  /* Apple */
+  applebot: {
+    name: "Applebot",
+    description: "Apple's crawler for indexing.",
+    url: "http://www.apple.com/go/applebot",
+  },
+  "applebot-extended": {
+    name: "Applebot-Extended",
+    description: "Apple's crawler for Generative AI.",
+    prefix: "applebot",
+    baseKey: "applebot",
+  },
+
+  /* Yandex */
+  yandex: {
+    name: "Yandex",
+    description: "Yandex's crawler for indexing.",
+    url: "http://yandex.com/bots",
+    directives: ["disallow", "allow", "sitemap", "crawl-delay", "clean-param"],
+  },
+
+  /* Baidu */
+  baiduspider: {
+    name: "Baiduspider",
+    description: "Baidu's crawler for indexing.",
+    url: "http://www.baidu.com/search/spider.htm",
+  },
+  "baiduspider-image": {
+    name: "Baiduspider-Image",
+    description: "Baidu's crawler for indexing images.",
+    prefix: "baiduspider",
+    baseKey: "baiduspider",
+  },
+  "baiduspider-video": {
+    name: "Baiduspider-Video",
+    description: "Baidu's crawler for indexing videos.",
+    prefix: "baiduspider",
+    baseKey: "baiduspider",
+  },
+
+  /* Yahoo */
+  slurp: {
+    name: "Slurp",
+    description: "Yahoo's crawler for indexing.",
+    url: "http://help.yahoo.com/help/us/ysearch/slurp",
+  },
+
+  /* DuckDuckGo */
+  duckduckbot: {
+    name: "DuckDuckBot",
+    description: "DuckDuckGo's crawler for indexing.",
+    url: "http://duckduckgo.com/duckduckbot.html",
+  },
+
+  /* Facebook / Meta */
+  facebookexternalhit: {
+    name: "FacebookExternalHit",
+    description: "Facebook's crawler for indexing and link previews.",
+    url: "http://www.facebook.com/externalhit_uatext.php",
+  },
+  "meta-": {
+    name: "Meta-",
+    description: "placeholder for Meta-Xxx.",
+    hiddenHover: true,
+  },
+  "meta-webindexer": {
+    name: "Meta-WebIndexer",
+    description: "Meta's crawler for Meta AI.",
+    prefix: "meta-",
+    baseKey: "facebookexternalhit",
+  },
+  "meta-externalads": {
+    name: "Meta-ExternalAds",
+    description: "Meta's crawler for qualifying ads.",
+    prefix: "meta-",
+    baseKey: "facebookexternalhit",
+  },
+  "meta-externalagent": {
+    name: "Meta-ExternalAgent",
+    description: "Meta's crawler for AI model training.",
+    prefix: "meta-",
+    baseKey: "facebookexternalhit",
+  },
+  "meta-externalfetcher": {
+    name: "Meta-ExternalFetcher",
+    description: "Meta's crawler for qualifying AI agents.",
+    prefix: "meta-",
+    baseKey: "facebookexternalhit",
+  },
+
+  /* OpenAI */
+  gptbot: {
+    name: "GPTBot",
+    description: "OpenAI's GPT crawler for generative AI.",
+    url: "https://openai.com/gptbot",
+  },
+  "chatgpt-user": {
+    name: "ChatGPT-User",
+    description: "OpenAI's GPT fetcher for user requests.",
+    baseKey: "gptbot",
+  },
+  "oai-": {
+    name: "OAI-",
+    description: "placeholder for OAI-Xxx.",
+    hiddenHover: true,
+  },
+  "oai-adsbot": {
+    name: "OAI-AdsBot",
+    description: "OpenAI's GPT crawler for ads.",
+    prefix: "oai-",
+    baseKey: "gptbot",
+  },
+  "oai-searchbot": {
+    name: "OAI-SearchBot",
+    description: "OpenAI's GPT crawler for search.",
+    prefix: "oai-",
+    baseKey: "gptbot",
+  },
+
+  /* Amazon */
+  amazonbot: {
+    name: "Amazonbot",
+    description: "Amazon's crawler for qualifying services within AI training.",
+    url: "https://developer.amazon.com/support/amazonbot",
+  },
+  "amzn-": {
+    name: "Amzn-",
+    description: "placeholder for Amzn-Xxx.",
+    hiddenHover: true,
+  },
+  "amzn-searchbot": {
+    name: "Amzn-SearchBot",
+    description:
+      "Amazon's crawler for qualifying Alexa and Rufus without AI training.",
+    prefix: "amzn-",
+    baseKey: "amazonbot",
+  },
+  "amzn-user": {
+    name: "Amzn-User",
+    description:
+      "Amazon's fetcher for user requests to Alexa and Rufus without AI training.",
+    prefix: "amzn-",
+    baseKey: "amazonbot",
+  },
+
+  /* Perplexity */
+  perplexitybot: {
+    name: "PerplexityBot",
+    description: "Perplexity's crawler for indexing without AI training.",
+    url: "https://perplexity.ai/perplexitybot",
+  },
+  "perplexity-user": {
+    name: "Perplexity-User",
+    description: "Perplexity's fetcher for user requests without AI training.",
+    baseKey: "perplexitybot",
+  },
+
+  /* Anthropic */
+  claudebot: {
+    name: "ClaudeBot",
+    description: "Anthropic's crawler for indexing and AI training.",
+  },
+
+  /* ByteDance / TikTok */
+  bytespider: {
+    name: "Bytespider",
+    description: "ByteDance's crawler for indexing and AI training.",
+  },
+
+  /* Internet Archive */
+  wayback: {
+    name: "Wayback",
+    description: "Internet Archive's crawler for archiving.",
+    url: "http://archive.org/details/archive.org_bot",
+  },
+
+  /* Other */
+  seznambot: {
+    name: "SeznamBot",
+    description: "Seznam's crawler. Czech search engine.",
+    hiddenCompletion: true,
+  },
+  coccocbot: {
+    name: "CoccocBot",
+    description: "Coccoc's crawler. Vietnamese search engine.",
+    hiddenCompletion: true,
+  },
+  sogou: {
+    name: "Sogou",
+    description: "Sogou's crawler. Chinese search engine.",
+    url: "http://www.sogou.com/docs/help/webmasters.htm#07",
+    hiddenCompletion: true,
+  },
+  timpibot: {
+    name: "Timpibot",
+    description: "Timpi's crawler.",
+    hiddenCompletion: true,
+  },
+} as const;
