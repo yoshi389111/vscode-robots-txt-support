@@ -90,14 +90,14 @@ export class RobotsTxtSignatureHelpProvider
 
     if (/^\s*host\s*(:\s*)/i.test(beforeCursor)) {
       const signature = new vscode.SignatureInformation(
-        "Host: <url>",
+        "Host: <domain>",
         "specifies the location of the canonical host.",
       );
 
       signature.parameters = [
         new vscode.ParameterInformation(
-          "<url>",
-          "The absolute URL of the host (e.g., https://www.example.com/).",
+          "<domain>",
+          "The domain of the host (e.g., www.example.com).",
         ),
       ];
       const help = new vscode.SignatureHelp();
