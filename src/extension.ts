@@ -2,15 +2,15 @@ import * as vscode from "vscode";
 import { RobotsTxtCompletionItemProvider } from "./completion";
 import { RobotsTxtFoldingRangeProvider } from "./folding";
 import { RobotsTxtSignatureHelpProvider } from "./signature";
+import { RobotsTxtHoverProvider } from "./hover";
 import { collectDiagnostics } from "./diagnostic";
-
-const LANGUAGE_ID = "robots-txt";
+import * as constants from "./constants";
 
 export function activate(context: vscode.ExtensionContext) {
   // Register the completion item provider
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
-      LANGUAGE_ID,
+      constants.LANGUAGE_ID,
       new RobotsTxtCompletionItemProvider(),
     ),
   );
@@ -18,26 +18,35 @@ export function activate(context: vscode.ExtensionContext) {
   // Register the folding range provider
   context.subscriptions.push(
     vscode.languages.registerFoldingRangeProvider(
-      LANGUAGE_ID,
+      constants.LANGUAGE_ID,
       new RobotsTxtFoldingRangeProvider(),
     ),
   );
 
   context.subscriptions.push(
     vscode.languages.registerSignatureHelpProvider(
-      LANGUAGE_ID,
+      constants.LANGUAGE_ID,
       new RobotsTxtSignatureHelpProvider(),
       " ",
       ":",
     ),
   );
 
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtHoverProvider(),
+    ),
+  );
+
   // Register the diagnostic collection updater
   let timeout: NodeJS.Timeout | null = null;
-  const diagnostics = vscode.languages.createDiagnosticCollection(LANGUAGE_ID);
+  const diagnostics = vscode.languages.createDiagnosticCollection(
+    constants.LANGUAGE_ID,
+  );
   context.subscriptions.push(diagnostics);
   const diagnosticUpdate = (document: vscode.TextDocument) => {
-    if (document.languageId === LANGUAGE_ID) {
+    if (document.languageId === constants.LANGUAGE_ID) {
       if (timeout) {
         clearTimeout(timeout);
       }

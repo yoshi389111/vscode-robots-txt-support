@@ -30,6 +30,7 @@ const DIAGNOSTIC_INFO = {
   RBT503E: "The directive value is not a numeric.",
   RBT504W: "The directive value has leading zeros.",
   RBT505E: "The directive value is invalid.",
+  RBT506E: "The directive value is not a valid domain.",
 };
 
 type DiagnosticCode = keyof typeof DIAGNOSTIC_INFO;
@@ -95,9 +96,9 @@ export async function collectDiagnostics(
     } else if (directiveType === "host") {
       // The directive is deprecated
       addDiagnostic("RBT502D", astDirective.name.range);
-      if (!isValidUri(directiveValue.text)) {
-        // The directive value is not a valid URL
-        addDiagnostic("RBT501E", directiveValue.range);
+      if (!isValidDomain(directiveValue.text)) {
+        // The directive value is not a valid domain
+        addDiagnostic("RBT506E", directiveValue.range);
       }
     } else if (directiveType === "clean-param") {
       if (directiveValue.text.length === 0) {
@@ -230,6 +231,16 @@ function isValidUri(uri: string): boolean {
   } catch {
     return false;
   }
+}
+
+function isValidDomain(domain: string): boolean {
+  if (domain.includes(" ")) {
+    return false;
+  }
+  // A simple regex to validate domain names
+  const domainRegex =
+    /^[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
+  return domainRegex.test(domain);
 }
 
 function createDiagnostic(
