@@ -130,7 +130,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       },
       {
         label: "<path-pattern>",
-        documentation: "The path pattern that ignore parameters (optional).",
+        documentation: "The path pattern for which the parameters should be ignored (optional).",
       },
     ],
   },
