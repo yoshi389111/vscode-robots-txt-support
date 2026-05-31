@@ -12,12 +12,34 @@ const DIRECTIVES = [
 ] as const;
 
 /** Creates a new completion item for a keyword */
-const newCompletionKeyword = (label: string): vscode.CompletionItem =>
-  new vscode.CompletionItem(label, vscode.CompletionItemKind.Keyword);
+const newCompletionKeyword = (
+  label: string,
+  range?: vscode.Range,
+): vscode.CompletionItem => {
+  const item = new vscode.CompletionItem(
+    label,
+    vscode.CompletionItemKind.Keyword,
+  );
+  if (range) {
+    item.range = range;
+  }
+  return item;
+};
 
 /** Creates a new completion item for a value */
-const newCompletionValue = (label: string): vscode.CompletionItem =>
-  new vscode.CompletionItem(label, vscode.CompletionItemKind.Value);
+const newCompletionValue = (
+  label: string,
+  range?: vscode.Range,
+): vscode.CompletionItem => {
+  const item = new vscode.CompletionItem(
+    label,
+    vscode.CompletionItemKind.Value,
+  );
+  if (range) {
+    item.range = range;
+  }
+  return item;
+};
 
 /** Completion item provider for robots.txt */
 export class RobotsTxtCompletionItemProvider
@@ -41,40 +63,47 @@ export class RobotsTxtCompletionItemProvider
 
     // If the line is empty or only contains whitespace, suggest all directives
     if (directivePart === undefined) {
-      return DIRECTIVES.map(newCompletionKeyword);
+      return DIRECTIVES.map((directive) => newCompletionKeyword(directive));
     }
 
     if (valuePart === undefined) {
       // Suggest directives that match the current line prefix
+      const range = new vscode.Range(
+        position.translate(0, -directivePart.length),
+        position,
+      );
       return DIRECTIVES.filter((directive) =>
         directive.toLowerCase().startsWith(directivePart),
-      ).map(newCompletionKeyword);
+      ).map((directive) => newCompletionKeyword(directive, range));
     }
 
     // Suggest common user agents
     if (directivePart === "user-agent") {
-      const userAgentPart = valuePart.toLowerCase();
+      const inputPart = valuePart.toLowerCase();
+      const range = new vscode.Range(
+        position.translate(0, -inputPart.length),
+        position,
+      );
       return Object.entries(CRAWLER_INFOS)
-        .filter(([key, _]) => key.startsWith(userAgentPart))
+        .filter(([key, _]) => key !== inputPart && key.startsWith(inputPart))
         .map(([, info]) => info)
         .filter((info) => !info.hiddenCompletion)
         .filter(
           (info) =>
-            info.prefix === undefined ||
-            userAgentPart.startsWith(info.prefix.toLowerCase()),
+            info.prefix === undefined || inputPart.startsWith(info.prefix),
         )
-        .map((info) => newCompletionValue(info.name));
+        .map((info) => newCompletionValue(info.name, range));
     }
 
-    // Suggest common paths for Disallow and Allow directives
-    if (directivePart === "disallow" || directivePart === "allow") {
-      // TODO:
-      return [
-        newCompletionValue("/"),
-        newCompletionValue("/private/"),
-        newCompletionValue("/public/"),
-      ];
-    }
+    // // Suggest common paths for Disallow and Allow directives
+    // if (directivePart === "disallow" || directivePart === "allow") {
+    //   // TODO:
+    //   return [
+    //     newCompletionValue("/"),
+    //     newCompletionValue("/private/"),
+    //     newCompletionValue("/public/"),
+    //   ];
+    // }
 
     // If no matching directive is found, return undefined
     return undefined;
