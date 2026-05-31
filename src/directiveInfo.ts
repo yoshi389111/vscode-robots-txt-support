@@ -232,7 +232,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
   "robot-version": {
     example: "Robot-version: 2.0",
     usage: "Robot-version: <version>",
-    description: "Specifies the robot.txt file version.",
+    description: "Specifies the robots.txt file version.",
     details: [
       "This directive is non-standard.",
       "Support is very limited and most crawlers ignore it.",
@@ -240,7 +240,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<version>",
-        documentation: "The robot.txt file version.",
+        documentation: "The robots.txt file version.",
       },
     ],
     hiddenCompletion: true,
