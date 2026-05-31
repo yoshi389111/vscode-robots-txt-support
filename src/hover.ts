@@ -82,7 +82,7 @@ function getCrawlerInfo(
     return undefined;
   }
   const crawlerInfo = CRAWLER_INFOS[crawlerKey];
-  if (!crawlerInfo) {
+  if (!crawlerInfo || crawlerInfo.hiddenHover) {
     return undefined;
   }
 
