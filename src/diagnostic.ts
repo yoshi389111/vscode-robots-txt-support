@@ -106,16 +106,16 @@ export async function collectDiagnostics(
       }
       const params = directiveValue.text.split(/\s+/);
       if (2 < params.length) {
-        // The directive value is invalid
+        // The directive value is invalid (too many parameters)
         addDiagnostic("RBT505E", directiveValue.range);
       } else if (!/^\w+(\&\w+)*$/.test(params[0]!)) {
-        // The directive value is invalid
+        // The directive value is invalid (param#1)
         addDiagnostic("RBT505E", directiveValue.range);
       } else if (
         params.length === 2 &&
-        !/^\/[-#%&*./0-9=?A-Z_a-z~]+\$?$/.test(params[1]!)
+        !/^\/[-#%&*./0-9=?A-Z_a-z~]*\$?$/.test(params[1]!)
       ) {
-        // The directive value is invalid
+        // The directive value is invalid (param#2)
         addDiagnostic("RBT505E", directiveValue.range);
       }
     }
