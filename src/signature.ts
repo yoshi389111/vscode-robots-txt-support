@@ -36,8 +36,8 @@ export class RobotsTxtSignatureHelpProvider
     if (1 < directiveInfo.params.length) {
       const params = lineText.text
         .substring(0, position.character)
+        .replace(/^[^#:]*:/, "")
         .trimStart()
-        .replace(/^\[^#:]*:/, "")
         .split(/\s+/);
       help.activeParameter = Math.min(
         params.length - 1,
