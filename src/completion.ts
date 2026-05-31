@@ -55,11 +55,10 @@ export class RobotsTxtCompletionItemProvider
     const lineParts = document
       .lineAt(position)
       .text.substring(0, position.character)
-      .split(":", 2)
-      .map((part) => part.trim());
+      .split(":", 2);
 
-    const directivePart = lineParts[0]?.toLowerCase();
-    const valuePart = lineParts[1];
+    const directivePart = lineParts[0]?.trimStart().toLowerCase();
+    const valuePart = lineParts[1]?.trimEnd();
 
     // If the line is empty or only contains whitespace, suggest all directives
     if (directivePart === undefined) {
