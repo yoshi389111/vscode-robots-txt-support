@@ -5,6 +5,7 @@ export interface ParameterInfo {
 
 export interface DirectiveInfo {
   example: string;
+  usage: string;
   description: string;
   details: string[];
   reference?: {
@@ -12,11 +13,13 @@ export interface DirectiveInfo {
     url: string;
   }[];
   params: ParameterInfo[];
+  hiddenCompletion?: boolean;
 }
 
 export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
   "user-agent": {
     example: "User-agent: ExampleBot",
+    usage: "User-agent: <product-token>",
     description: "Specifies which crawler the following rule group applies to.",
     details: [
       "The value is a crawler name (product token) or `*` for all crawlers.",
@@ -33,6 +36,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
 
   disallow: {
     example: "Disallow: /command/*.php$",
+    usage: "Disallow: <path-pattern>",
     description:
       "Specifies path patterns that are disallowed for matching crawlers.",
     details: [
@@ -52,6 +56,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
 
   allow: {
     example: "Allow: /articles/",
+    usage: "Allow: <path-pattern>",
     description:
       "Specifies path patterns that are allowed for matching crawlers.",
     details: [
@@ -70,6 +75,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
 
   sitemap: {
     example: "Sitemap: https://www.example.com/sitemap.xml",
+    usage: "Sitemap: <sitemap-url>",
     description: "Specifies the location of a sitemap file.",
     details: [
       "The value must be an absolute URL.",
@@ -92,6 +98,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
 
   "crawl-delay": {
     example: "Crawl-delay: 10",
+    usage: "Crawl-delay: <seconds>",
     description: "Specifies the minimum delay between crawler requests.",
     details: [
       "The value is expressed in seconds.",
@@ -109,6 +116,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
 
   "clean-param": {
     example: "Clean-param: sessionid&ref /articles/",
+    usage: "Clean-param: <params> [<path-pattern>]",
     description:
       "Specifies URL query parameters that do not affect page content.",
     details: [
@@ -130,13 +138,16 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       },
       {
         label: "<path-pattern>",
-        documentation: "The path pattern for which the parameters should be ignored (optional).",
+        documentation:
+          "The path pattern for which the parameters should be ignored (optional).",
       },
     ],
+    hiddenCompletion: true,
   },
 
   host: {
     example: "Host: www.example.com",
+    usage: "Host: <domain>",
     description: "Specifies the canonical host for the site.",
     details: [
       "This directive is non-standard and was historically supported by Yandex.",
@@ -148,10 +159,12 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
         documentation: "The domain of the host.",
       },
     ],
+    hiddenCompletion: true,
   },
 
   noindex: {
     example: "Noindex: /private/",
+    usage: "Noindex: <path-pattern>",
     description: "Requests that matching pages not be indexed.",
     details: [
       "The value is a path pattern beginning with `/`.",
@@ -174,10 +187,12 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
         documentation: "A path pattern whose pages should not be indexed.",
       },
     ],
+    hiddenCompletion: true,
   },
 
   "request-rate": {
     example: "Request-rate: 1/5 0800-1800",
+    usage: "Request-rate: <rate> [<time-range>]",
     description: "Specifies a crawl rate limit.",
     details: [
       "This directive is non-standard.",
@@ -194,10 +209,12 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
           "The time range during which the rate limit applies (optional).",
       },
     ],
+    hiddenCompletion: true,
   },
 
   "visit-time": {
     example: "Visit-time: 0600-0845",
+    usage: "Visit-time: <time-range>",
     description: "Specifies preferred crawling time ranges.",
     details: [
       "This directive is non-standard.",
@@ -209,10 +226,12 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
         documentation: "A preferred crawling time range.",
       },
     ],
+    hiddenCompletion: true,
   },
 
   "robot-version": {
     example: "Robot-version: 2.0",
+    usage: "Robot-version: <version>",
     description: "Specifies the robot.txt file version.",
     details: [
       "This directive is non-standard.",
@@ -224,10 +243,12 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
         documentation: "The robot.txt file version.",
       },
     ],
+    hiddenCompletion: true,
   },
 
   comment: {
     example: "Comment: This is a comment",
+    usage: "Comment: <text>",
     description: "Specifies a comment in the robots.txt file.",
     details: [
       "The value is a comment string.",
@@ -241,5 +262,6 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
         documentation: "The comment string.",
       },
     ],
+    hiddenCompletion: true,
   },
 };
