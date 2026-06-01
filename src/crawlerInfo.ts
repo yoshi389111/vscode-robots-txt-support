@@ -18,6 +18,8 @@ export interface CrawlerInfo {
   hiddenHover?: boolean;
   /** Whether to hide completion items for the crawler. */
   hiddenCompletion?: boolean;
+  /** Whether to ignore global agents for the crawler. */
+  ignoreGlobalUserAgents?: boolean;
 }
 
 // ref. <https://github.com/monperrus/crawler-user-agents/blob/master/crawler-user-agents.json>
@@ -65,7 +67,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
   "google-": {
     name: "Google-",
-    description: "placeholder for Google-Xxx.",
+    description: "Placeholder entry for Google-* user agents.",
     hiddenHover: true,
   },
   "google-inspectiontool": {
@@ -103,6 +105,34 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     prefix: "googleother",
     baseKey: "googlebot",
   },
+  "apis-google": {
+    name: "APIs-Google",
+    description:
+      "Google's crawler for API monitoring and service health checks.",
+    baseKey: "googlebot",
+    ignoreGlobalUserAgents: true,
+  },
+  "adsbot-google-mobile": {
+    name: "AdsBot-Google-Mobile",
+    description:
+      "Google's crawler for testing mobile-friendliness of landing pages for ads.",
+    baseKey: "googlebot",
+    ignoreGlobalUserAgents: true,
+  },
+  "adsbot-google": {
+    name: "AdsBot-Google",
+    description:
+      "Google's crawler for testing the quality of landing pages for ads.",
+    baseKey: "googlebot",
+    ignoreGlobalUserAgents: true,
+  },
+  "mediapartners-google": {
+    name: "Mediapartners-Google",
+    description:
+      "Google's crawler for AdSense content analysis and ad targeting.",
+    baseKey: "googlebot",
+    ignoreGlobalUserAgents: true,
+  },
 
   /* Microsoft */
   bingbot: {
@@ -113,7 +143,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
   adidxbot: {
     name: "AdIdxBot",
-    description: "Microsoft's crawler for qualifying ads.",
+    description: "Microsoft's crawler for ad quality and policy checks.",
     baseKey: "bingbot",
   },
   microsoftpreview: {
@@ -189,7 +219,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
   "meta-": {
     name: "Meta-",
-    description: "placeholder for Meta-Xxx.",
+    description: "Placeholder entry for Meta-* user agents.",
     hiddenHover: true,
   },
   "meta-webindexer": {
@@ -230,7 +260,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
   "oai-": {
     name: "OAI-",
-    description: "placeholder for OAI-Xxx.",
+    description: "Placeholder entry for OAI-* user agents.",
     hiddenHover: true,
   },
   "oai-adsbot": {
@@ -249,18 +279,19 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   /* Amazon */
   amazonbot: {
     name: "Amazonbot",
-    description: "Amazon's crawler for qualifying services within AI training.",
+    description:
+      "Amazon's crawler for service quality checks and AI-related processing.",
     url: "https://developer.amazon.com/support/amazonbot",
   },
   "amzn-": {
     name: "Amzn-",
-    description: "placeholder for Amzn-Xxx.",
+    description: "Placeholder entry for Amzn-* user agents.",
     hiddenHover: true,
   },
   "amzn-searchbot": {
     name: "Amzn-SearchBot",
     description:
-      "Amazon's crawler for qualifying Alexa and Rufus without AI training.",
+      "Amazon's crawler for Alexa and Rufus retrieval, not model training.",
     prefix: "amzn-",
     baseKey: "amazonbot",
   },
@@ -308,8 +339,8 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
 
   /* Internet Archive */
-  wayback: {
-    name: "Wayback",
+  "archive.org_bot": {
+    name: "archive.org_bot",
     description: "Internet Archive's crawler for archiving.",
     url: "http://archive.org/details/archive.org_bot",
   },
@@ -317,23 +348,60 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   /* Other */
   seznambot: {
     name: "SeznamBot",
-    description: "Seznam's crawler. Czech search engine.",
+    description: "Crawler for Seznam, a Czech search engine.",
     hiddenCompletion: true,
   },
   coccocbot: {
     name: "CoccocBot",
-    description: "Coccoc's crawler. Vietnamese search engine.",
+    description: "Crawler for Coccoc, a Vietnamese search engine.",
+    url: "http://help.coccoc.com/searchengine",
     hiddenCompletion: true,
   },
   sogou: {
     name: "Sogou",
-    description: "Sogou's crawler. Chinese search engine.",
+    description: "Crawler for Sogou, a Chinese search engine.",
     url: "http://www.sogou.com/docs/help/webmasters.htm#07",
     hiddenCompletion: true,
   },
   timpibot: {
     name: "Timpibot",
     description: "Timpi's crawler.",
+    hiddenCompletion: true,
+  },
+  ccbot: {
+    name: "CCBot",
+    description: "Common Crawl's crawler for web archiving.",
+    url: "https://commoncrawl.org/faq/",
+    hiddenCompletion: true,
+  },
+  petalbot: {
+    name: "PetalBot",
+    description: "PetalBot is the web crawler used by Petal Search.",
+    url: "https://aspiegel.com/petalbot",
+    hiddenCompletion: true,
+  },
+  semrushbot: {
+    name: "SemrushBot",
+    description: "SemrushBot is the crawler used by Semrush.",
+    url: "http://www.semrush.com/bot.html",
+    hiddenCompletion: true,
+  },
+  dotbot: {
+    name: "DotBot",
+    description: "DotBot is the crawler used by Dot.com.",
+    url: "http://www.opensiteexplorer.org/dotbot",
+    hiddenCompletion: true,
+  },
+  mj12bot: {
+    name: "MJ12bot",
+    description: "MJ12bot is the crawler used by Majestic-12.",
+    url: "http://www.majestic12.co.uk/bot.php",
+    hiddenCompletion: true,
+  },
+  ahrefsbot: {
+    name: "AhrefsBot",
+    description: "AhrefsBot is the crawler used by Ahrefs.",
+    url: "http://ahrefs.com/robot/",
     hiddenCompletion: true,
   },
 } as const;
