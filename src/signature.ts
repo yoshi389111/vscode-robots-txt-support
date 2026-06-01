@@ -74,5 +74,8 @@ function decideActiveParameter(
     (_, index) =>
       tokens.length <= index || tokens[index]?.range.contains(cursorPosition),
   );
-  return Math.max(activeParamIndex, 0);
+
+  return activeParamIndex === -1
+    ? directiveInfo.params.length - 1
+    : activeParamIndex;
 }

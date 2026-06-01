@@ -134,7 +134,7 @@ export async function collectDiagnostics(
   document: vscode.TextDocument,
   collection: vscode.DiagnosticCollection,
 ): Promise<void> {
-  const diagnostics = new DiagnosticCollection();
+  const diagnostics = new RobotsTxtDiagnosticAccumulator();
 
   if (!isValidFileName(document)) {
     // The file name is not 'robots.txt'
@@ -275,7 +275,7 @@ export async function collectDiagnostics(
 }
 
 function checkPathPattern(
-  diagnostics: DiagnosticCollection,
+  diagnostics: RobotsTxtDiagnosticAccumulator,
   paramToken: Token,
 ): void {
   if (paramToken.text === "") {
@@ -304,7 +304,7 @@ function checkPathPattern(
 }
 
 function checkNumericToken(
-  diagnostics: DiagnosticCollection,
+  diagnostics: RobotsTxtDiagnosticAccumulator,
   paramToken: Token,
 ): void {
   if (!/^\d+$/.test(paramToken.text)) {
@@ -361,7 +361,7 @@ function isValidDomain(domain: string): boolean {
  * A helper class to collect diagnostics during the validation process.
  * It allows adding diagnostics with specific information and retrieving all collected diagnostics at once.
  */
-class DiagnosticCollection {
+class RobotsTxtDiagnosticAccumulator {
   /** The list of collected diagnostics. */
   private diagnostics: vscode.Diagnostic[] = [];
 
