@@ -44,7 +44,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       "When multiple rules match, the longest match is used.",
       "`*` matches any number of characters and `$` matches the end of the path.",
       "An empty value allows all paths.",
-      "Robots.txt is advisory and should not be relied on for access control.",
+      "'robots.txt' is advisory and should not be relied on for access control.",
     ],
     params: [
       {
@@ -152,6 +152,17 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     details: [
       "This directive is non-standard and was historically supported by Yandex.",
       "Support is now very limited and most major crawlers ignore it.",
+      'Use the `<link rel="canonical">` or `301 Moved Permanently` HTTP response instead.',
+    ],
+    reference: [
+      {
+        text: '<link rel="canonical"> - MDN Web Docs',
+        url: "https://developer.mozilla.org/docs/Web/HTML/Reference/Attributes/rel",
+      },
+      {
+        text: "301 Moved Permanently - MDN Web Docs",
+        url: "https://developer.mozilla.org/docs/Web/HTTP/Reference/Status/301",
+      },
     ],
     params: [
       {
@@ -167,18 +178,17 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     usage: "Noindex: <path-pattern>",
     description: "Requests that matching pages not be indexed.",
     details: [
-      "The value is a path pattern beginning with `/`.",
       "This directive is non-standard and not recognized by most major crawlers.",
       'Use `<meta name="robots">` or the `X-Robots-Tag` HTTP header instead.',
     ],
     reference: [
       {
         text: '<meta name="robots"> - MDN Web Docs',
-        url: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/robots",
+        url: "https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/meta/name/robots",
       },
       {
         text: "X-Robots-Tag header - MDN Web Docs",
-        url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Robots-Tag",
+        url: "https://developer.mozilla.org/docs/Web/HTTP/Reference/Headers/X-Robots-Tag",
       },
     ],
     params: [
@@ -251,7 +261,6 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     usage: "Comment: <text>",
     description: "Specifies a comment in the robots.txt file.",
     details: [
-      "The value is a comment string.",
       "This directive is non-standard.",
       "Support is very limited and most crawlers ignore it.",
       "Use `#` for comments instead of this directive.",
