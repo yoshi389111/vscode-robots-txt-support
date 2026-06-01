@@ -376,23 +376,23 @@ class DiagnosticCollection {
 
   /**
    * Creates a vscode.Diagnostic object based on the provided diagnostic information and range.
-   * @param dignosticInfo The information about the diagnostic, including code, severity, message, and optional tag.
+   * @param diagnosticInfo The information about the diagnostic, including code, severity, message, and optional tag.
    * @param range The range in the document where the diagnostic should be applied.
    * @returns A vscode.Diagnostic object representing the diagnostic to be added to the collection.
    */
   private createDiagnostic(
-    dignosticInfo: DiagnosticInfo,
+    diagnosticInfo: DiagnosticInfo,
     range: vscode.Range,
   ): vscode.Diagnostic {
     const diagnostic: vscode.Diagnostic = {
-      message: dignosticInfo.message,
+      message: diagnosticInfo.message,
       range,
-      severity: dignosticInfo.severity,
-      code: dignosticInfo.code,
+      severity: diagnosticInfo.severity,
+      code: diagnosticInfo.code,
       source: EXTENSION_NAME,
     };
-    if (dignosticInfo.tag) {
-      diagnostic.tags = [dignosticInfo.tag];
+    if (diagnosticInfo.tag) {
+      diagnostic.tags = [diagnosticInfo.tag];
     }
     return diagnostic;
   }
