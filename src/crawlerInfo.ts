@@ -287,7 +287,18 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   /* Anthropic */
   claudebot: {
     name: "ClaudeBot",
-    description: "Anthropic's crawler for indexing and AI training.",
+    description: "Anthropic's crawler for AI training.",
+    url: "https://support.anthropic.com/",
+  },
+  "claude-user": {
+    name: "Claude-User",
+    description: "Anthropic's fetcher for user requests.",
+    baseKey: "claudebot",
+  },
+  "claude-searchbot": {
+    name: "Claude-SearchBot",
+    description: "Anthropic's crawler for indexing.",
+    baseKey: "claudebot",
   },
 
   /* ByteDance / TikTok */
