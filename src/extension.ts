@@ -3,6 +3,7 @@ import { RobotsTxtCompletionItemProvider } from "./completion";
 import { RobotsTxtFoldingRangeProvider } from "./folding";
 import { RobotsTxtSignatureHelpProvider } from "./signature";
 import { RobotsTxtHoverProvider } from "./hover";
+import { DelayExecutor } from "./utils/DelayExecutor";
 import { collectDiagnostics } from "./diagnostic";
 import * as constants from "./constants";
 
@@ -48,20 +49,18 @@ function* initializeExtension(
   );
 
   // Register the diagnostic collection updater
-  let timeout: NodeJS.Timeout | null = null;
   const diagnostics = vscode.languages.createDiagnosticCollection(
     constants.LANGUAGE_ID,
   );
   yield diagnostics;
 
+  const delayExecutor = new DelayExecutor();
   const diagnosticUpdate = (document: vscode.TextDocument) => {
     if (document.languageId === constants.LANGUAGE_ID) {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-      timeout = setTimeout(() => {
-        collectDiagnostics(document, diagnostics);
-      }, 200);
+      delayExecutor.execute(
+        () => collectDiagnostics(document, diagnostics),
+        200,
+      );
     }
   };
 
