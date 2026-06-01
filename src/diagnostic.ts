@@ -79,7 +79,7 @@ const CODE = {
   PATH_PATTERN_NECESSARY_WILDCARD: {
     code: "RBT108",
     severity: vscode.DiagnosticSeverity.Hint,
-    message: "Necessary wildcard at the end.",
+    message: "Unnecessary '*' at the end of the pattern.",
   },
   PATH_PATTERN_DOUBLE_ASTARISK: {
     code: "RBT109",
