@@ -23,8 +23,8 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     description: "Specifies which crawler the following rule group applies to.",
     details: [
       "The value is a crawler name (product token) or `*` for all crawlers.",
-      "Matching is case-insensitive and based on the user-agent product token.",
-      "Multiple consecutive `User-agent` lines share the same rule group.",
+      "Matching is case-insensitive and uses the user-agent product token.",
+      "Consecutive `User-agent` lines belong to the same group.",
     ],
     params: [
       {
@@ -42,9 +42,8 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     details: [
       "The value is a path beginning with `/`.",
       "When multiple rules match, the longest match is used.",
-      "`*` matches any number of characters and `$` matches the end of the path.",
+      "`*` matches any sequence; `$` anchors the end of the path.",
       "An empty value allows all paths.",
-      "'robots.txt' is advisory and should not be relied on for access control.",
     ],
     params: [
       {
@@ -62,7 +61,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     details: [
       "The value is a path beginning with `/`.",
       "When multiple rules match, the longest match is used.",
-      "`*` matches any number of characters and `$` matches the end of the path.",
+      "`*` matches any sequence; `$` anchors the end of the path.",
       "`Allow` rules can override broader `Disallow` rules.",
     ],
     params: [
@@ -121,7 +120,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       "Specifies URL query parameters that do not affect page content.",
     details: [
       "Multiple parameter names may be separated by `&`.",
-      "An optional path pattern may be specified to limit the rule.",
+      "Optional path pattern to scope the rule.",
       "Applies globally and is not part of any User-agent group.",
       "Primarily supported by Yandex.",
     ],
@@ -152,7 +151,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     details: [
       "This directive is non-standard and was historically supported by Yandex.",
       "Support is now very limited and most major crawlers ignore it.",
-      'Use the `<link rel="canonical">` or `301 Moved Permanently` HTTP response instead.',
+      "Prefer canonical links or HTTP 301 redirects.",
     ],
     reference: [
       {
@@ -167,7 +166,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<domain>",
-        documentation: "The domain of the host.",
+        documentation: "The canonical hostname.",
       },
     ],
     hiddenCompletion: true,
@@ -206,7 +205,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     description: "Specifies a crawl rate limit.",
     details: [
       "This directive is non-standard.",
-      "Support is limited and many crawlers ignore it.",
+      "Limited support; most crawlers ignore it.",
     ],
     params: [
       {
@@ -228,7 +227,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     description: "Specifies preferred crawling time ranges.",
     details: [
       "This directive is non-standard.",
-      "Support is very limited and most crawlers ignore it.",
+      "Limited support; most crawlers ignore it.",
     ],
     params: [
       {
@@ -245,7 +244,7 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     description: "Specifies the robots.txt file version.",
     details: [
       "This directive is non-standard.",
-      "Support is very limited and most crawlers ignore it.",
+      "Limited support; most crawlers ignore it.",
     ],
     params: [
       {
@@ -262,13 +261,13 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     description: "Specifies a comment in the robots.txt file.",
     details: [
       "This directive is non-standard.",
-      "Support is very limited and most crawlers ignore it.",
+      "Limited support; most crawlers ignore it.",
       "Use `#` for comments instead of this directive.",
     ],
     params: [
       {
         label: "<text>",
-        documentation: "The comment string.",
+        documentation: "The comment text.",
       },
     ],
     hiddenCompletion: true,
