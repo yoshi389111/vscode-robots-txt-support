@@ -1,69 +1,158 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { parseRobotsTxt } from "./parser";
+import { Token } from "./lineparser";
 
 const EXTENSION_NAME = "Robots.txt support";
-
-const DIAGNOSTIC_INFO = {
-  RBT001E: "The file name is not 'robots.txt'.",
-  RBT002E: "The file encoding is not UTF-8.",
-  RBT003W: "The file contains a UTF-8 BOM.",
-  RBT004E: "The file size exceeds 500 KiB.",
-
-  RBT101E: "The directive is missing a colon.",
-  RBT102E:
-    "The directive name is invalid. Directive names should consist of letters, digits, hyphens, and underscores only.",
-  RBT103W: "The directive is unknown.",
-  RBT104U: "The directive is defined outside of a group.",
-  RBT105E:
-    "The product token is invalid. Product tokens should consist of letters, hyphens, and underscores only or '*'.",
-  RBT106E: "The group does not contains allow/disallow directives.",
-  RBT107E: "The path pattern does not start with a slash.",
-  RBT108W: "The wildcard is not necessary at the end of the path pattern.",
-  RBT109W: "The '**' pattern is not necessary (use a single '*').",
-  RBT110E: "The '$' character is only allowed at the end of the path pattern.",
-  RBT111E:
-    "The path pattern contains unencoded characters that should be URL-encoded.",
-
-  RBT501E: "The directive value is not a valid URL.",
-  RBT502D: "The directive is deprecated.",
-  RBT503E: "The directive value is not a numeric.",
-  RBT504W: "The directive value has leading zeros.",
-  RBT505E: "The directive value is invalid.",
-  RBT506E: "The directive value is not a valid domain.",
-};
-
-type DiagnosticCode = keyof typeof DIAGNOSTIC_INFO;
 
 const KNOWN_INSIDE_DIRECTIVES = ["allow", "disallow", "crawl-delay"];
 const REGEX_DIRECTIVE_NAME = /^[a-zA-Z]([a-zA-Z0-9_-]*[a-zA-Z])?$/;
 const REGEX_PRODUCT_TOKEN = /^([a-zA-Z_-]+$|^\*)$/;
+const REGEX_DOMAIN =
+  /^[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
+
+interface DiagnosticInfo {
+  code: string;
+  severity: vscode.DiagnosticSeverity;
+  tag?: vscode.DiagnosticTag;
+  message: string;
+}
+
+const CODE = {
+  FILENAME_INVALID: {
+    code: "RBT001",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid file name. Expected 'robots.txt'.",
+  },
+  ENCODING_NOT_UTF8: {
+    code: "RBT002",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid file encoding. Expected UTF-8.",
+  },
+  ENCODING_UTF8_BOM: {
+    code: "RBT003",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "The file contains a UTF-8 BOM.",
+  },
+  FILESIZE_LARGE: {
+    code: "RBT004",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "Exceeds the recommended 500 KiB limit.",
+  },
+
+  DIRECTIVE_MISSING_COLON: {
+    code: "RBT101",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Missing a colon.",
+  },
+  DIRECTIVE_NAME_INVALID: {
+    code: "RBT102",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid directive name.",
+  },
+  DIRECTIVE_UNKNOWN: {
+    code: "RBT103",
+    severity: vscode.DiagnosticSeverity.Information,
+    message: "Unknown directive.",
+  },
+  DIRECTIVE_OUTSIDE: {
+    code: "RBT104",
+    severity: vscode.DiagnosticSeverity.Warning,
+    tag: vscode.DiagnosticTag.Unnecessary,
+    message: "The directive is defined outside of a group.",
+  },
+  PRODUCT_TOKEN_INVALID: {
+    code: "RBT105",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "Invalid product token. Allowed: [A-Za-z_-] or single '*'",
+  },
+  GROUP_MISSING_ALLOW_DISALLOW: {
+    code: "RBT106",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "No rules in the group.",
+  },
+  PATH_PATTERN_NOT_START_SLASH: {
+    code: "RBT107",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "Does not start with a slash.",
+  },
+  PATH_PATTERN_NECESSARY_WILDCARD: {
+    code: "RBT108",
+    severity: vscode.DiagnosticSeverity.Hint,
+    message: "Necessary wildcard at the end.",
+  },
+  PATH_PATTERN_DOUBLE_ASTARISK: {
+    code: "RBT109",
+    severity: vscode.DiagnosticSeverity.Hint,
+    message: "Necessary '**'.",
+  },
+  PATH_PATTERN_DOLLAR: {
+    code: "RBT110",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "'$' is only allowed at the end of the pattern.",
+  },
+  PATH_PATTERN_INVALID_URLENCODE: {
+    code: "RBT111",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid URL characters.",
+  },
+
+  URL_INVALID: {
+    code: "RBT501",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid URL.",
+  },
+  DIRECTIVE_DEPRECATED: {
+    code: "RBT502",
+    severity: vscode.DiagnosticSeverity.Information,
+    tag: vscode.DiagnosticTag.Deprecated,
+    message: "Deprecated directive.",
+  },
+  NOT_NUMERIC: {
+    code: "RBT503",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "Value is not numeric.",
+  },
+  NUMBER_LEADING_ZERO: {
+    code: "RBT504",
+    severity: vscode.DiagnosticSeverity.Hint,
+    message: "Consider removing leading zeros.",
+  },
+  PARAM_INVALID: {
+    code: "RBT505",
+    severity: vscode.DiagnosticSeverity.Warning,
+    message: "Invalid directive value.",
+  },
+  DOMAIN_INVALID: {
+    code: "RBT506",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid domain.",
+  },
+};
 
 export async function collectDiagnostics(
   document: vscode.TextDocument,
   collection: vscode.DiagnosticCollection,
 ): Promise<void> {
-  const diagnostics: vscode.Diagnostic[] = [];
-  const addDiagnostic = (code: DiagnosticCode, range: vscode.Range) =>
-    diagnostics.push(createDiagnostic(code, range));
+  const diagnostics = new DiagnosticCollection();
 
   if (!isValidFileName(document)) {
     // The file name is not 'robots.txt'
-    addDiagnostic("RBT001E", new vscode.Range(0, 0, 0, 0));
+    diagnostics.add(CODE.FILENAME_INVALID, new vscode.Range(0, 0, 0, 0));
   }
 
   if (document.encoding === "utf8bom") {
     // The file contains a UTF-8 BOM
-    addDiagnostic("RBT003W", new vscode.Range(0, 0, 0, 0));
+    diagnostics.add(CODE.ENCODING_UTF8_BOM, new vscode.Range(0, 0, 0, 0));
   } else if (document.encoding !== "utf8") {
     // The file encoding is not UTF-8
-    addDiagnostic("RBT002E", new vscode.Range(0, 0, 0, 0));
+    diagnostics.add(CODE.ENCODING_NOT_UTF8, new vscode.Range(0, 0, 0, 0));
   }
 
   // Check for file size
   const isFileSizeValid = await isValidFileSize(document);
   if (!isFileSizeValid) {
-    addDiagnostic("RBT004E", new vscode.Range(0, 0, 0, 0));
+    diagnostics.add(CODE.FILESIZE_LARGE, new vscode.Range(0, 0, 0, 0));
   }
 
   // parse the robots.txt file
@@ -72,134 +161,160 @@ export async function collectDiagnostics(
   // Check for directives outside of groups
   for (const astDirective of astRoot.directives) {
     const directiveType = astDirective.type;
-    const directiveValue = astDirective.value;
+    const valueToken = astDirective.valueToken;
+    const nameToken = astDirective.nameToken;
 
     if (!REGEX_DIRECTIVE_NAME.test(directiveType)) {
       // The directive name is invalid
-      addDiagnostic("RBT102E", astDirective.name.range);
+      diagnostics.add(CODE.DIRECTIVE_NAME_INVALID, nameToken.range);
     }
 
-    if (directiveValue === undefined) {
+    if (valueToken === undefined) {
       // The directive is missing a colon
-      addDiagnostic("RBT101E", astDirective.name.range);
+      diagnostics.add(CODE.DIRECTIVE_MISSING_COLON, nameToken.range);
       continue;
     }
 
     if (KNOWN_INSIDE_DIRECTIVES.includes(directiveType)) {
       // The directive is defined outside of a group
-      addDiagnostic("RBT104U", astDirective.name.range);
+      diagnostics.add(CODE.DIRECTIVE_OUTSIDE, nameToken.range);
     } else if (directiveType === "sitemap") {
-      if (!isValidUri(directiveValue.text)) {
+      if (!isValidUri(valueToken.text)) {
         // The directive value is not a valid URL
-        addDiagnostic("RBT501E", directiveValue.range);
+        diagnostics.add(CODE.URL_INVALID, valueToken.range);
       }
     } else if (directiveType === "host") {
       // The directive is deprecated
-      addDiagnostic("RBT502D", astDirective.name.range);
-      if (!isValidDomain(directiveValue.text)) {
+      diagnostics.add(CODE.DIRECTIVE_DEPRECATED, nameToken.range);
+      if (!isValidDomain(valueToken.text)) {
         // The directive value is not a valid domain
-        addDiagnostic("RBT506E", directiveValue.range);
+        diagnostics.add(CODE.DOMAIN_INVALID, valueToken.range);
       }
     } else if (directiveType === "clean-param") {
-      if (directiveValue.text.length === 0) {
+      if (valueToken.text.length === 0) {
         continue;
       }
-      const params = directiveValue.text.split(/\s+/);
+      const params = valueToken.text.split(/\s+/);
       if (2 < params.length) {
         // The directive value is invalid (too many parameters)
-        addDiagnostic("RBT505E", directiveValue.range);
+        diagnostics.add(CODE.PARAM_INVALID, valueToken.range);
       } else if (!/^\w+(\&\w+)*$/.test(params[0]!)) {
         // The directive value is invalid (param#1)
-        addDiagnostic("RBT505E", directiveValue.range);
+        diagnostics.add(CODE.PARAM_INVALID, valueToken.range);
       } else if (
         params.length === 2 &&
-        !/^\/[-#%&*./0-9=?A-Z_a-z~]*\$?$/.test(params[1]!)
+        !/^\/[-%&*./0-9=?A-Z_a-z~]*\$?$/.test(params[1]!)
       ) {
         // The directive value is invalid (param#2)
-        addDiagnostic("RBT505E", directiveValue.range);
+        diagnostics.add(CODE.PARAM_INVALID, valueToken.range);
       }
     }
   }
 
   for (const group of astRoot.groups) {
     for (const userAgent of group.userAgents) {
-      const productToken = userAgent.value;
+      const productToken = userAgent.valueToken;
       if (productToken === undefined) {
         // The directive is missing a colon
-        addDiagnostic("RBT101E", userAgent.name.range);
+        diagnostics.add(
+          CODE.DIRECTIVE_MISSING_COLON,
+          userAgent.nameToken.range,
+        );
         continue;
       } else if (!REGEX_PRODUCT_TOKEN.test(productToken.text)) {
         // The product token is invalid
-        addDiagnostic("RBT105E", productToken.range);
+        diagnostics.add(CODE.PRODUCT_TOKEN_INVALID, productToken.range);
       }
     }
 
-    let hasStandardRule = false;
     for (const rule of group.rules) {
       const directiveType = rule.type;
-      const ruleNameRange = rule.name.range;
-      const ruleParam = rule.value;
+      const ruleNameRange = rule.nameToken.range;
+      const paramToken = rule.valueToken;
 
-      if (ruleParam === undefined) {
+      if (paramToken === undefined) {
         if (REGEX_DIRECTIVE_NAME.test(directiveType)) {
           // The directive is missing a colon
-          addDiagnostic("RBT101E", ruleNameRange);
+          diagnostics.add(CODE.DIRECTIVE_MISSING_COLON, ruleNameRange);
         } else {
           // The directive name is invalid
-          addDiagnostic("RBT102E", ruleNameRange);
+          diagnostics.add(CODE.DIRECTIVE_NAME_INVALID, ruleNameRange);
         }
         continue;
       }
 
       if (directiveType === "allow" || directiveType === "disallow") {
-        hasStandardRule = true;
-        if (ruleParam.text === "") {
+        if (paramToken.text === "") {
           continue;
         }
-        if (!/^[-#$%&*./0-9=?A-Z_a-z~]+$/.test(ruleParam.text)) {
-          // The path pattern contains unencoded characters that should be URL-encoded
-          addDiagnostic("RBT111E", ruleParam.range);
-        }
-        if (!ruleParam.text.startsWith("/")) {
-          // The path pattern does not start with a slash
-          addDiagnostic("RBT107E", ruleParam.range);
-        }
-        if (ruleParam.text.lastIndexOf("$", -2) !== -1) {
-          // The '$' character is only allowed at the end of the path pattern
-          addDiagnostic("RBT110E", ruleParam.range);
-        }
-        if (ruleParam.text.endsWith("*")) {
-          // The wildcard is not necessary at the end of the path pattern
-          addDiagnostic("RBT108W", ruleParam.range);
-        }
-        if (ruleParam.text.includes("**")) {
-          // The '**' pattern is not necessary (use a single '*')
-          addDiagnostic("RBT109W", ruleParam.range);
-        }
+        checkPathPattern(diagnostics, paramToken);
       } else if (directiveType === "crawl-delay") {
-        if (ruleParam.text === "") {
+        if (paramToken.text === "") {
           continue;
         }
-        if (!/^\d+$/.test(ruleParam.text)) {
-          // The directive value is not a numeric
-          addDiagnostic("RBT503E", ruleParam.range);
-        }
-        if (/^0+\d+$/.test(ruleParam.text)) {
-          // The directive value has leading zeros
-          addDiagnostic("RBT504W", ruleParam.range);
-        }
+        checkNumericToken(diagnostics, paramToken);
       } else {
         // This directive is unknown
-        addDiagnostic("RBT103W", ruleNameRange);
+        diagnostics.add(CODE.DIRECTIVE_UNKNOWN, ruleNameRange);
       }
     }
+
+    const hasStandardRule = group.rules.some((rule) =>
+      ["allow", "disallow"].includes(rule.type),
+    );
     if (!hasStandardRule) {
       // The group does not contains allow/disallow directives
-      addDiagnostic("RBT106E", group.userAgents[0]!.name.range);
+      diagnostics.add(
+        CODE.GROUP_MISSING_ALLOW_DISALLOW,
+        group.userAgents[0]!.nameToken.range,
+      );
     }
   }
 
-  collection.set(document.uri, diagnostics);
+  collection.set(document.uri, diagnostics.getAll());
+}
+
+function checkPathPattern(
+  diagnostics: DiagnosticCollection,
+  paramToken: Token,
+): void {
+  if (paramToken.text === "") {
+    return;
+  }
+  if (!/^[-$%&*./0-9=?A-Z_a-z~]+$/.test(paramToken.text)) {
+    // The path pattern contains unencoded characters that should be URL-encoded
+    diagnostics.add(CODE.PATH_PATTERN_INVALID_URLENCODE, paramToken.range);
+  }
+  if (!paramToken.text.startsWith("/")) {
+    // The path pattern does not start with a slash
+    diagnostics.add(CODE.PATH_PATTERN_NOT_START_SLASH, paramToken.range);
+  }
+  if (paramToken.text.lastIndexOf("$", -2) !== -1) {
+    // The '$' character is only allowed at the end of the path pattern
+    diagnostics.add(CODE.PATH_PATTERN_DOLLAR, paramToken.range);
+  }
+  if (paramToken.text.endsWith("*")) {
+    // The wildcard is not necessary at the end of the path pattern
+    diagnostics.add(CODE.PATH_PATTERN_NECESSARY_WILDCARD, paramToken.range);
+  }
+  if (paramToken.text.includes("**")) {
+    // The '**' pattern is not necessary (use a single '*')
+    diagnostics.add(CODE.PATH_PATTERN_DOUBLE_ASTARISK, paramToken.range);
+  }
+}
+
+function checkNumericToken(
+  diagnostics: DiagnosticCollection,
+  paramToken: Token,
+): void {
+  if (!/^\d+$/.test(paramToken.text)) {
+    // The directive value is not a numeric
+    diagnostics.add(CODE.NOT_NUMERIC, paramToken.range);
+  }
+  if (/^0+\d+$/.test(paramToken.text)) {
+    // The directive value has leading zeros
+    diagnostics.add(CODE.NUMBER_LEADING_ZERO, paramToken.range);
+  }
 }
 
 function isValidFileName(document: vscode.TextDocument): boolean {
@@ -233,39 +348,60 @@ function isValidUri(uri: string): boolean {
   }
 }
 
+/**
+ * Checks if the given domain is valid according to the rules for host directive values.
+ * @param domain The domain to validate.
+ * @returns True if the domain is valid, false otherwise.
+ */
 function isValidDomain(domain: string): boolean {
-  if (domain.includes(" ")) {
-    return false;
-  }
-  // A simple regex to validate domain names
-  const domainRegex =
-    /^[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
-  return domainRegex.test(domain);
+  return REGEX_DOMAIN.test(domain);
 }
 
-function createDiagnostic(
-  code: DiagnosticCode,
-  range: vscode.Range,
-): vscode.Diagnostic {
-  const diagnostic: vscode.Diagnostic = {
-    message: DIAGNOSTIC_INFO[code],
-    range,
-    severity: vscode.DiagnosticSeverity.Error,
-    code,
-    source: EXTENSION_NAME,
-  };
-  if (code.endsWith("W")) {
-    diagnostic.severity = vscode.DiagnosticSeverity.Warning;
-  } else if (code.endsWith("U")) {
-    diagnostic.severity = vscode.DiagnosticSeverity.Warning;
-    diagnostic.tags = [vscode.DiagnosticTag.Unnecessary];
-  } else if (code.endsWith("D")) {
-    diagnostic.severity = vscode.DiagnosticSeverity.Warning;
-    diagnostic.tags = [vscode.DiagnosticTag.Deprecated];
-  } else if (code.endsWith("I")) {
-    diagnostic.severity = vscode.DiagnosticSeverity.Information;
-  } else if (code.endsWith("H")) {
-    diagnostic.severity = vscode.DiagnosticSeverity.Hint;
+/**
+ * A helper class to collect diagnostics during the validation process.
+ * It allows adding diagnostics with specific information and retrieving all collected diagnostics at once.
+ */
+class DiagnosticCollection {
+  /** The list of collected diagnostics. */
+  private diagnostics: vscode.Diagnostic[] = [];
+
+  /**
+   * Adds a diagnostic to the collection based on the provided diagnostic information and range.
+   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, message, and optional tag.
+   * @param range The range in the document where the diagnostic should be applied.
+   */
+  public add(diagnosticInfo: DiagnosticInfo, range: vscode.Range): void {
+    this.diagnostics.push(this.createDiagnostic(diagnosticInfo, range));
   }
-  return diagnostic;
+
+  /**
+   * Creates a vscode.Diagnostic object based on the provided diagnostic information and range.
+   * @param dignosticInfo The information about the diagnostic, including code, severity, message, and optional tag.
+   * @param range The range in the document where the diagnostic should be applied.
+   * @returns A vscode.Diagnostic object representing the diagnostic to be added to the collection.
+   */
+  private createDiagnostic(
+    dignosticInfo: DiagnosticInfo,
+    range: vscode.Range,
+  ): vscode.Diagnostic {
+    const diagnostic: vscode.Diagnostic = {
+      message: dignosticInfo.message,
+      range,
+      severity: dignosticInfo.severity,
+      code: dignosticInfo.code,
+      source: EXTENSION_NAME,
+    };
+    if (dignosticInfo.tag) {
+      diagnostic.tags = [dignosticInfo.tag];
+    }
+    return diagnostic;
+  }
+
+  /**
+   * Retrieves all collected diagnostics in the collection.
+   * @returns An array of vscode.Diagnostic objects representing all diagnostics collected in the collection.
+   */
+  public getAll(): vscode.Diagnostic[] {
+    return this.diagnostics;
+  }
 }

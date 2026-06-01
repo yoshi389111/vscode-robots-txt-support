@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { parseLine } from "./lineparser";
-import { DIRECTIVE_INFOS } from "./directiveInfo";
+import { parseLine, splitTokenBySpace, Token } from "./lineparser";
+import { DIRECTIVE_INFOS, DirectiveInfo } from "./directiveInfo";
 
 export class RobotsTxtSignatureHelpProvider
   implements vscode.SignatureHelpProvider
@@ -11,42 +11,68 @@ export class RobotsTxtSignatureHelpProvider
     _token: vscode.CancellationToken,
     _context: vscode.SignatureHelpContext,
   ): vscode.ProviderResult<vscode.SignatureHelp> {
-    const lineText = document.lineAt(position.line);
-    const parsedLine = parseLine(lineText);
-    const directiveName = parsedLine.name?.text.toLowerCase() ?? "";
+    const parsedLine = parseLine(document.lineAt(position.line));
 
-    const directiveInfo = DIRECTIVE_INFOS[directiveName];
-    if (!directiveInfo) {
+    const directiveType = parsedLine.nameToken?.text.toLowerCase();
+    if (!directiveType) {
+      // empty line or comment-only line, just ignore
       return undefined;
     }
 
+    const directiveInfo = DIRECTIVE_INFOS[directiveType];
+    if (!directiveInfo) {
+      // unknown directive, just ignore
+      return undefined;
+    }
+
+    // create signature information and set directive usage.
     const signature = new vscode.SignatureInformation(
       directiveInfo.usage,
       directiveInfo.description,
     );
 
+    // set parameter information
     signature.parameters = directiveInfo.params.map(
       (param) =>
         new vscode.ParameterInformation(param.label, param.documentation),
     );
+
     const help = new vscode.SignatureHelp();
     help.signatures = [signature];
     help.activeSignature = 0;
-
-    if (1 < directiveInfo.params.length) {
-      const params = lineText.text
-        .substring(0, position.character)
-        .replace(/^[^#:]*:/, "")
-        .trimStart()
-        .split(/\s+/);
-      help.activeParameter = Math.min(
-        params.length - 1,
-        directiveInfo.params.length - 1,
-      );
-    } else {
-      help.activeParameter = 0;
-    }
-
+    help.activeParameter = decideActiveParameter(
+      directiveInfo,
+      parsedLine.valueToken,
+      position,
+    );
     return help;
   }
+}
+
+/**
+ * Decides which parameter is active based on the cursor position.
+ * @param directiveInfo The directive information containing the parameters.
+ * @param valueToken The token representing the directive value, which may contain multiple parameters separated by spaces.
+ * @param cursorPosition The current position of the cursor in the document.
+ * @returns The index of the active parameter.
+ */
+function decideActiveParameter(
+  directiveInfo: DirectiveInfo,
+  valueToken: Token | undefined,
+  cursorPosition: vscode.Position,
+): number {
+  if (directiveInfo.params.length <= 1) {
+    return 0;
+  }
+
+  if (!valueToken) {
+    return 0;
+  }
+
+  const tokens = splitTokenBySpace(valueToken);
+  const activeParamIndex = directiveInfo.params.findIndex(
+    (_, index) =>
+      tokens.length <= index || tokens[index]?.range.contains(cursorPosition),
+  );
+  return Math.max(activeParamIndex, 0);
 }

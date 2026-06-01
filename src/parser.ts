@@ -5,9 +5,9 @@ export interface AstDirective {
   /** directive type. always lowercase */
   type: string;
   /** directive name */
-  name: Token;
+  nameToken: Token;
   /** directive value, or undefined if not exists colon */
-  value: Token | undefined;
+  valueToken: Token | undefined;
 }
 
 export interface AstGroup {
@@ -39,17 +39,17 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
   for (let lineNo = 0; lineNo < document.lineCount; lineNo++) {
     const textLine = document.lineAt(lineNo);
     const parsedLine = parseLine(textLine);
-    const parsedDirective = parsedLine.name;
-    if (parsedDirective === undefined) {
+    const parsedNameToken = parsedLine.nameToken;
+    if (parsedNameToken === undefined) {
       // empty line or comment-only line, just ignore
       continue;
     }
 
-    const directiveType = parsedDirective.text.toLowerCase();
+    const directiveType = parsedNameToken.text.toLowerCase();
     const astDirective: AstDirective = {
       type: directiveType,
-      name: parsedDirective,
-      value: parsedLine.value,
+      nameToken: parsedNameToken,
+      valueToken: parsedLine.valueToken,
     };
 
     switch (directiveType) {
