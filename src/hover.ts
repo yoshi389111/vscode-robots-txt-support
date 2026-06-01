@@ -87,8 +87,8 @@ function getCrawlerInfo(
     return undefined;
   }
 
-  const baseCrawlerInfo = crawlerInfo.baseKey
-    ? CRAWLER_INFOS[crawlerInfo.baseKey]
+  const baseCrawlerInfo = crawlerInfo.inheritsFromKey
+    ? CRAWLER_INFOS[crawlerInfo.inheritsFromKey]
     : undefined;
 
   if (!baseCrawlerInfo) {

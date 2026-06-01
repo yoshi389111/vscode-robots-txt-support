@@ -10,15 +10,15 @@ export interface CrawlerInfo {
   url?: string;
   /** Prefix of completion item. lowercase */
   prefix?: string;
-  /** Base key. lowercase */
-  baseKey?: string;
+  /** Key of the crawler this one inherits from. lowercase */
+  inheritsFromKey?: string;
   /** List of directives supported by the crawler. */
   directives?: string[];
   /** Whether to hide hover information for the crawler. */
   hiddenHover?: boolean;
   /** Whether to hide completion items for the crawler. */
   hiddenCompletion?: boolean;
-  /** Whether to ignore global agents for the crawler. */
+  /** Whether to ignore global user agents for the crawler. */
   ignoreGlobalUserAgents?: boolean;
 }
 
@@ -46,24 +46,24 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "Googlebot-Image",
     description: "Google's crawler for indexing images.",
     prefix: "googlebot",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "googlebot-video": {
     name: "Googlebot-Video",
     description: "Google's crawler for indexing videos.",
     prefix: "googlebot",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "googlebot-news": {
     name: "Googlebot-News",
     description: "Google's crawler for indexing news.",
     prefix: "googlebot",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "storebot-google": {
     name: "Storebot-Google",
     description: "Google's crawler for indexing store content.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "google-": {
     name: "Google-",
@@ -74,63 +74,63 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "Google-InspectionTool",
     description: "Google's crawler for search testing tools.",
     prefix: "google-",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "google-cloudvertexbot": {
     name: "Google-CloudVertexBot",
     description: "Google's crawler for Vertex AI Agents.",
     prefix: "google-",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "google-extended": {
     name: "Google-Extended",
     description: "Google's crawler for Gemini Apps and Vertex AI.",
     prefix: "google-",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   googleother: {
     name: "GoogleOther",
     description: "Google's crawler for internal research and development.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "googleother-image": {
     name: "GoogleOther-Image",
     description: "Google's crawler for internal research and development.",
     prefix: "googleother",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "googleother-video": {
     name: "GoogleOther-Video",
     description: "Google's crawler for internal research and development.",
     prefix: "googleother",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
   },
   "apis-google": {
     name: "APIs-Google",
     description:
       "Google's crawler for API monitoring and service health checks.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
     ignoreGlobalUserAgents: true,
   },
   "adsbot-google-mobile": {
     name: "AdsBot-Google-Mobile",
     description:
       "Google's crawler for testing mobile-friendliness of landing pages for ads.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
     ignoreGlobalUserAgents: true,
   },
   "adsbot-google": {
     name: "AdsBot-Google",
     description:
       "Google's crawler for testing the quality of landing pages for ads.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
     ignoreGlobalUserAgents: true,
   },
   "mediapartners-google": {
     name: "Mediapartners-Google",
     description:
       "Google's crawler for AdSense content analysis and ad targeting.",
-    baseKey: "googlebot",
+    inheritsFromKey: "googlebot",
     ignoreGlobalUserAgents: true,
   },
 
@@ -144,17 +144,17 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   adidxbot: {
     name: "AdIdxBot",
     description: "Microsoft's crawler for ad quality and policy checks.",
-    baseKey: "bingbot",
+    inheritsFromKey: "bingbot",
   },
   microsoftpreview: {
     name: "MicrosoftPreview",
     description: "Microsoft's crawler for previewing content.",
-    baseKey: "bingbot",
+    inheritsFromKey: "bingbot",
   },
   bingvideopreview: {
     name: "BingVideoPreview",
     description: "Microsoft's crawler for previewing video.",
-    baseKey: "bingbot",
+    inheritsFromKey: "bingbot",
   },
 
   /* Apple */
@@ -167,7 +167,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "Applebot-Extended",
     description: "Apple's crawler for Generative AI.",
     prefix: "applebot",
-    baseKey: "applebot",
+    inheritsFromKey: "applebot",
   },
 
   /* Yandex */
@@ -188,13 +188,13 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "Baiduspider-Image",
     description: "Baidu's crawler for indexing images.",
     prefix: "baiduspider",
-    baseKey: "baiduspider",
+    inheritsFromKey: "baiduspider",
   },
   "baiduspider-video": {
     name: "Baiduspider-Video",
     description: "Baidu's crawler for indexing videos.",
     prefix: "baiduspider",
-    baseKey: "baiduspider",
+    inheritsFromKey: "baiduspider",
   },
 
   /* Yahoo */
@@ -226,25 +226,25 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "Meta-WebIndexer",
     description: "Meta's crawler for Meta AI.",
     prefix: "meta-",
-    baseKey: "facebookexternalhit",
+    inheritsFromKey: "facebookexternalhit",
   },
   "meta-externalads": {
     name: "Meta-ExternalAds",
     description: "Meta's crawler for qualifying ads.",
     prefix: "meta-",
-    baseKey: "facebookexternalhit",
+    inheritsFromKey: "facebookexternalhit",
   },
   "meta-externalagent": {
     name: "Meta-ExternalAgent",
     description: "Meta's crawler for AI model training.",
     prefix: "meta-",
-    baseKey: "facebookexternalhit",
+    inheritsFromKey: "facebookexternalhit",
   },
   "meta-externalfetcher": {
     name: "Meta-ExternalFetcher",
     description: "Meta's crawler for qualifying AI agents.",
     prefix: "meta-",
-    baseKey: "facebookexternalhit",
+    inheritsFromKey: "facebookexternalhit",
   },
 
   /* OpenAI */
@@ -256,7 +256,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   "chatgpt-user": {
     name: "ChatGPT-User",
     description: "OpenAI's GPT fetcher for user requests.",
-    baseKey: "gptbot",
+    inheritsFromKey: "gptbot",
   },
   "oai-": {
     name: "OAI-",
@@ -267,13 +267,13 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "OAI-AdsBot",
     description: "OpenAI's GPT crawler for ads.",
     prefix: "oai-",
-    baseKey: "gptbot",
+    inheritsFromKey: "gptbot",
   },
   "oai-searchbot": {
     name: "OAI-SearchBot",
     description: "OpenAI's GPT crawler for search.",
     prefix: "oai-",
-    baseKey: "gptbot",
+    inheritsFromKey: "gptbot",
   },
 
   /* Amazon */
@@ -293,14 +293,14 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     description:
       "Amazon's crawler for Alexa and Rufus retrieval, not model training.",
     prefix: "amzn-",
-    baseKey: "amazonbot",
+    inheritsFromKey: "amazonbot",
   },
   "amzn-user": {
     name: "Amzn-User",
     description:
       "Amazon's fetcher for user requests to Alexa and Rufus without AI training.",
     prefix: "amzn-",
-    baseKey: "amazonbot",
+    inheritsFromKey: "amazonbot",
   },
 
   /* Perplexity */
@@ -312,7 +312,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   "perplexity-user": {
     name: "Perplexity-User",
     description: "Perplexity's fetcher for user requests without AI training.",
-    baseKey: "perplexitybot",
+    inheritsFromKey: "perplexitybot",
   },
 
   /* Anthropic */
@@ -324,12 +324,12 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   "claude-user": {
     name: "Claude-User",
     description: "Anthropic's fetcher for user requests.",
-    baseKey: "claudebot",
+    inheritsFromKey: "claudebot",
   },
   "claude-searchbot": {
     name: "Claude-SearchBot",
     description: "Anthropic's crawler for indexing.",
-    baseKey: "claudebot",
+    inheritsFromKey: "claudebot",
   },
 
   /* ByteDance / TikTok */
@@ -343,6 +343,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
     name: "archive.org_bot",
     description: "Internet Archive's crawler for archiving.",
     url: "http://archive.org/details/archive.org_bot",
+    hiddenCompletion: true,
   },
 
   /* Other */
