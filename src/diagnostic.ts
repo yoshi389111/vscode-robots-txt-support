@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { parseRobotsTxt } from "./parser";
-import { Token } from "./lineparser";
+import { parseRobotsTxt } from "./documentParser";
+import { Token } from "./lineParser";
 
 const EXTENSION_NAME = "Robots.txt support";
 
