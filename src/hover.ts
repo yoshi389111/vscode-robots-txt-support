@@ -11,22 +11,22 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken,
   ): vscode.ProviderResult<vscode.Hover> {
     const parsedLine = parseLine(document.lineAt(position.line));
-    const directiveName = parsedLine.name?.text.toLowerCase();
-    const crawlerKey = parsedLine.value?.text.toLowerCase();
+    const directiveKey = parsedLine.nameToken?.text.toLowerCase();
+    const crawlerKey = parsedLine.valueToken?.text.toLowerCase();
 
-    if (directiveName === undefined) {
+    if (directiveKey === undefined) {
       // empty line or comment-only line, just ignore
       return null;
     }
 
-    const directive = DIRECTIVE_INFOS[directiveName];
+    const directive = DIRECTIVE_INFOS[directiveKey];
     if (!directive) {
       // unknown directive, just ignore
       return null;
     }
 
     const crawlerInfo =
-      directiveName === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
+      directiveKey === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
 
     const md = new vscode.MarkdownString();
 
@@ -81,6 +81,7 @@ function getCrawlerInfo(
   if (!crawlerKey) {
     return undefined;
   }
+
   const crawlerInfo = CRAWLER_INFOS[crawlerKey];
   if (!crawlerInfo || crawlerInfo.hiddenHover) {
     return undefined;
@@ -95,13 +96,10 @@ function getCrawlerInfo(
   }
 
   // merge with base crawler info
-  const mergedInfo: CrawlerInfo = Object.assign(
-    {
-      ...baseCrawlerInfo,
-    },
-    crawlerInfo,
-  );
-  return mergedInfo;
+  return {
+    ...baseCrawlerInfo,
+    ...crawlerInfo,
+  };
 }
 
 /**
@@ -117,6 +115,8 @@ function escapeMarkdown(text: string): string {
     .replaceAll("_", "\\_")
     .replaceAll("[", "\\[")
     .replaceAll("]", "\\]")
+    .replaceAll("{", "\\{")
+    .replaceAll("}", "\\}")
     .replaceAll("(", "\\(")
     .replaceAll(")", "\\)")
     .replaceAll("<", "\\<")
