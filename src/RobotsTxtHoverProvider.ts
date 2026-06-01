@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseLine } from "./lineparser";
+import { parseLine } from "./lineParser";
 import * as constants from "./constants";
 import { DIRECTIVE_INFOS } from "./directiveInfo";
 import { CRAWLER_INFOS, CrawlerInfo } from "./crawlerInfo";

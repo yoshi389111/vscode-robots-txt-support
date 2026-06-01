@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseLine, splitTokenBySpace, Token } from "./lineparser";
+import { parseLine, splitTokenBySpace, Token } from "./lineParser";
 import { DIRECTIVE_INFOS, DirectiveInfo } from "./directiveInfo";
 
 export class RobotsTxtSignatureHelpProvider
@@ -25,26 +25,31 @@ export class RobotsTxtSignatureHelpProvider
       return undefined;
     }
 
-    // create signature information and set directive usage.
-    const signature = new vscode.SignatureInformation(
-      directiveInfo.usage,
-      directiveInfo.description,
-    );
-
-    // set parameter information
-    signature.parameters = directiveInfo.params.map(
+    // create parameter information for signature help
+    const parameters = directiveInfo.params.map(
       (param) =>
         new vscode.ParameterInformation(param.label, param.documentation),
     );
 
-    const help = new vscode.SignatureHelp();
-    help.signatures = [signature];
-    help.activeSignature = 0;
-    help.activeParameter = decideActiveParameter(
+    // decide active parameter
+    const activeParameter = decideActiveParameter(
       directiveInfo,
       parsedLine.valueToken,
       position,
     );
+
+    // create signature information
+    const signature = new vscode.SignatureInformation(
+      directiveInfo.usage,
+      directiveInfo.description,
+    );
+    signature.parameters = parameters;
+
+    // create signature help and set active parameter
+    const help = new vscode.SignatureHelp();
+    help.signatures = [signature];
+    help.activeSignature = 0;
+    help.activeParameter = activeParameter;
     return help;
   }
 }

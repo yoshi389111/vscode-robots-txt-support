@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseLine, Token } from "./lineparser";
+import { parseLine, Token } from "./lineParser";
 
 export interface AstDirective {
   /** directive type. always lowercase */

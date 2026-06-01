@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseRobotsTxt } from "./parser";
+import { parseRobotsTxt } from "./documentParser";
 
 export class RobotsTxtFoldingRangeProvider
   implements vscode.FoldingRangeProvider
@@ -12,7 +12,7 @@ export class RobotsTxtFoldingRangeProvider
     // parse the robots.txt file
     const astRoot = parseRobotsTxt(document);
     // create folding ranges
-    const foldingRanges = astRoot.groups.map(
+    return astRoot.groups.map(
       (group) =>
         new vscode.FoldingRange(
           group.startLine,
@@ -20,6 +20,5 @@ export class RobotsTxtFoldingRangeProvider
           vscode.FoldingRangeKind.Region,
         ),
     );
-    return foldingRanges;
   }
 }

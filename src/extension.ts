@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { RobotsTxtCompletionItemProvider } from "./completion";
-import { RobotsTxtFoldingRangeProvider } from "./folding";
-import { RobotsTxtSignatureHelpProvider } from "./signature";
-import { RobotsTxtHoverProvider } from "./hover";
+import { RobotsTxtCompletionItemProvider } from "./RobotsTxtCompletionItemProvider";
+import { RobotsTxtFoldingRangeProvider } from "./RobotsTxtFoldingRangeProvider";
+import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider";
+import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { collectDiagnostics } from "./diagnostic";
 import * as constants from "./constants";
@@ -76,6 +76,12 @@ function* initializeExtension(
   yield vscode.workspace.onDidChangeTextDocument((event) =>
     diagnosticUpdate(event.document),
   );
+  // Listen to active editor changes and update diagnostics
+  yield vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      diagnosticUpdate(editor.document);
+    }
+  });
 
   // Listen to document closures and update diagnostics
   yield vscode.workspace.onDidCloseTextDocument((document) => {
@@ -88,11 +94,5 @@ function* initializeExtension(
   // Listen to file renames and update diagnostics
   yield vscode.workspace.onDidRenameFiles((event) => {
     event.files.forEach((file) => diagnostics.delete(file.oldUri));
-  });
-  // Listen to active editor changes and update diagnostics
-  yield vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor) {
-      diagnosticUpdate(editor.document);
-    }
   });
 }
