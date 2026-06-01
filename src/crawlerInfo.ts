@@ -389,7 +389,7 @@ export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
   },
   dotbot: {
     name: "DotBot",
-    description: "DotBot is the crawler used by Dot.com.",
+    description: "Moz's crawler for Link Explorer (formerly Open Site Explorer).",
     url: "http://www.opensiteexplorer.org/dotbot",
     hiddenCompletion: true,
   },
