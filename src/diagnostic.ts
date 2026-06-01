@@ -84,7 +84,7 @@ const CODE = {
   PATH_PATTERN_DOUBLE_ASTARISK: {
     code: "RBT109",
     severity: vscode.DiagnosticSeverity.Hint,
-    message: "Necessary '**'.",
+    message: "Unnecessary '**' (use a single '*').",
   },
   PATH_PATTERN_DOLLAR: {
     code: "RBT110",
