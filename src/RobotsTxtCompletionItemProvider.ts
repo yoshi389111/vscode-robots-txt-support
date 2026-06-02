@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { CRAWLER_INFOS } from "./crawlerInfo";
+import { CRAWLER_INFOS } from "./data/crawlerInfo";
 
 /** List of common directives in robots.txt */
 const DIRECTIVES = [

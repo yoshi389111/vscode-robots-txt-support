@@ -5,7 +5,7 @@ import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider
 import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { collectDiagnostics } from "./diagnostic";
-import * as constants from "./constants";
+import * as constants from "./data/constants";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...initializeExtension(context));

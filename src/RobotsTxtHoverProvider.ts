@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { parseLine } from "./lineParser";
-import * as constants from "./constants";
-import { DIRECTIVE_INFOS } from "./directiveInfo";
-import { CRAWLER_INFOS, CrawlerInfo } from "./crawlerInfo";
+import { parseLine } from "./parser/lineParser";
+import * as constants from "./data/constants";
+import { DIRECTIVE_INFOS } from "./data/directiveInfo";
+import { CRAWLER_INFOS, CrawlerInfo } from "./data/crawlerInfo";
 
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   public provideHover(

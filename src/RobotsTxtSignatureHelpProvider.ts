@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { parseLine, splitTokenBySpace, Token } from "./lineParser";
-import { DIRECTIVE_INFOS, DirectiveInfo } from "./directiveInfo";
+import { parseLine, splitTokenBySpace, Token } from "./parser/lineParser";
+import { DIRECTIVE_INFOS, DirectiveInfo } from "./data/directiveInfo";
 
 export class RobotsTxtSignatureHelpProvider
   implements vscode.SignatureHelpProvider
