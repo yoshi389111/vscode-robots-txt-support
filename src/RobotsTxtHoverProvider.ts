@@ -28,12 +28,14 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     const crawlerInfo =
       directiveKey === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
 
-    const md = new vscode.MarkdownString();
+    const exampleParams = directive.params.map((p) => p.example).join(" ");
 
     // example (code block)
     const example = crawlerInfo
       ? `User-agent: ${crawlerInfo.name}`
-      : directive.example;
+      : `${directive.name}: ${exampleParams}`;
+
+    const md = new vscode.MarkdownString();
     md.appendCodeblock(example, constants.LANGUAGE_ID);
 
     // description

@@ -2,6 +2,9 @@ import * as vscode from "vscode";
 import { parseLine, splitTokenWithLimit, Token } from "./parser/lineParser";
 import { DIRECTIVE_INFOS, DirectiveInfo } from "./data/directiveInfo";
 
+/**
+ * Provides signature help for `robots.txt` directives, showing usage and parameter information as the user types.
+ */
 export class RobotsTxtSignatureHelpProvider
   implements vscode.SignatureHelpProvider
 {
@@ -11,9 +14,9 @@ export class RobotsTxtSignatureHelpProvider
     _token: vscode.CancellationToken,
     _context: vscode.SignatureHelpContext,
   ): vscode.ProviderResult<vscode.SignatureHelp> {
-    const parsedLine = parseLine(document.lineAt(position.line));
+    const { name, value } = parseLine(document.lineAt(position.line));
 
-    const directiveType = parsedLine.name.text.toLowerCase();
+    const directiveType = name.text.toLowerCase();
     const directiveInfo = DIRECTIVE_INFOS[directiveType];
     if (!directiveInfo) {
       // unknown directive, just ignore
@@ -29,13 +32,16 @@ export class RobotsTxtSignatureHelpProvider
     // decide active parameter
     const activeParameter = decideActiveParameter(
       directiveInfo,
-      parsedLine.value,
+      value,
       position,
     );
 
+    const usageParams = directiveInfo.params.map((p) => p.label).join(" ");
+    const usage = `${directiveInfo.name}: ${usageParams}`;
+
     // create signature information
     const signature = new vscode.SignatureInformation(
-      directiveInfo.usage,
+      usage,
       directiveInfo.description,
     );
     signature.parameters = parameters;

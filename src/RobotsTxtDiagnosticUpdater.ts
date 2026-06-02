@@ -329,6 +329,9 @@ export class RobotsTxtDiagnosticUpdater {
   private async isValidFileSize(
     document: vscode.TextDocument,
   ): Promise<boolean> {
+    if (document.isUntitled) {
+      return true;
+    }
     const stat = await vscode.workspace.fs.stat(document.uri);
     return stat.size <= 500 * 1024;
   }
