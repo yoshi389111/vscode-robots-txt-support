@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseLine, splitTokenBySpace, Token } from "./parser/lineParser";
+import { parseLine, splitTokenWithLimit, Token } from "./parser/lineParser";
 import { DIRECTIVE_INFOS, DirectiveInfo } from "./data/directiveInfo";
 
 export class RobotsTxtSignatureHelpProvider
@@ -13,12 +13,7 @@ export class RobotsTxtSignatureHelpProvider
   ): vscode.ProviderResult<vscode.SignatureHelp> {
     const parsedLine = parseLine(document.lineAt(position.line));
 
-    const directiveType = parsedLine.nameToken?.text.toLowerCase();
-    if (!directiveType) {
-      // empty line or comment-only line, just ignore
-      return undefined;
-    }
-
+    const directiveType = parsedLine.name.text.toLowerCase();
     const directiveInfo = DIRECTIVE_INFOS[directiveType];
     if (!directiveInfo) {
       // unknown directive, just ignore
@@ -28,13 +23,13 @@ export class RobotsTxtSignatureHelpProvider
     // create parameter information for signature help
     const parameters = directiveInfo.params.map(
       (param) =>
-        new vscode.ParameterInformation(param.label, param.documentation),
+        new vscode.ParameterInformation(param.label, param.description),
     );
 
     // decide active parameter
     const activeParameter = decideActiveParameter(
       directiveInfo,
-      parsedLine.valueToken,
+      parsedLine.value,
       position,
     );
 
@@ -74,7 +69,7 @@ function decideActiveParameter(
     return 0;
   }
 
-  const tokens = splitTokenBySpace(valueToken);
+  const tokens = splitTokenWithLimit(valueToken, directiveInfo.params.length);
   const activeParamIndex = directiveInfo.params.findIndex(
     (_, index) =>
       tokens.length <= index || tokens[index]?.range.contains(cursorPosition),

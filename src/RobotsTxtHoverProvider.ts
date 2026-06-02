@@ -11,8 +11,8 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken,
   ): vscode.ProviderResult<vscode.Hover> {
     const parsedLine = parseLine(document.lineAt(position.line));
-    const directiveKey = parsedLine.nameToken?.text.toLowerCase();
-    const crawlerKey = parsedLine.valueToken?.text.toLowerCase();
+    const directiveKey = parsedLine.name?.text.toLowerCase();
+    const crawlerKey = parsedLine.value?.text.toLowerCase();
 
     if (directiveKey === undefined) {
       // empty line or comment-only line, just ignore
@@ -47,7 +47,7 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     md.appendMarkdown("**Parameters:**\n\n");
     for (const param of directive.params) {
       md.appendMarkdown(
-        `- \`${param.label}\` ― ${escapeMarkdown(param.documentation)}\n`,
+        `- \`${param.label}\` ― ${escapeMarkdown(param.description)}\n`,
       );
     }
     md.appendMarkdown("\n");
@@ -59,9 +59,9 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
       );
     }
     // reference
-    if (directive.reference || crawlerInfo?.url) {
+    if (directive.reference.length > 0 || crawlerInfo?.url) {
       md.appendMarkdown("**References:**\n\n");
-      directive.reference?.forEach((ref) => {
+      directive.reference.forEach((ref) => {
         md.appendMarkdown(`- [${escapeMarkdown(ref.text)}](${ref.url})\n`);
       });
       if (crawlerInfo?.url) {

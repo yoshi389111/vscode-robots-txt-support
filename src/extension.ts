@@ -3,8 +3,8 @@ import { RobotsTxtCompletionItemProvider } from "./RobotsTxtCompletionItemProvid
 import { RobotsTxtFoldingRangeProvider } from "./RobotsTxtFoldingRangeProvider";
 import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider";
 import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
+import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { DelayExecutor } from "./utils/DelayExecutor";
-import { collectDiagnostics } from "./diagnostic";
 import * as constants from "./data/constants";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -54,11 +54,12 @@ function* initializeExtension(
   );
   yield diagnostics;
 
+  const diagnosticUpdater = new RobotsTxtDiagnosticUpdater();
   const delayExecutor = new DelayExecutor();
   const diagnosticUpdate = (document: vscode.TextDocument) => {
     if (document.languageId === constants.LANGUAGE_ID) {
       delayExecutor.execute(
-        () => collectDiagnostics(document, diagnostics),
+        () => diagnosticUpdater.update(document, diagnostics),
         200,
       );
     }

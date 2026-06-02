@@ -1,13 +1,18 @@
 import * as vscode from "vscode";
-import { parseLine, Token } from "./lineParser";
+import { parseLine, splitTokenWithLimit, Token } from "./lineParser";
+import { DIRECTIVE_INFOS } from "../data/directiveInfo";
 
 export interface AstDirective {
   /** directive type. always lowercase */
   type: string;
   /** directive name */
-  nameToken: Token;
-  /** directive value, or undefined if not exists colon */
-  valueToken: Token | undefined;
+  name: Token;
+  /** separator, usually a colon (:) */
+  separator: Token | undefined;
+  /** directive value tokens */
+  params: Token[];
+  /** Comment */
+  comment: Token | undefined;
 }
 
 export interface AstGroup {
@@ -20,8 +25,9 @@ export interface AstGroup {
 }
 
 export interface AstRoot {
+  outside: AstGroup;
   groups: AstGroup[];
-  directives: AstDirective[];
+  globals: AstDirective[];
 }
 
 /**
@@ -31,70 +37,64 @@ export interface AstRoot {
  */
 export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
   const astRoot: AstRoot = {
+    outside: createAstGroup(),
     groups: [],
-    directives: [],
+    globals: [],
   };
-  let currentAstGroup: AstGroup | null = null;
 
+  let currentGroup: AstGroup = astRoot.outside;
   for (let lineNo = 0; lineNo < document.lineCount; lineNo++) {
-    const textLine = document.lineAt(lineNo);
-    const parsedLine = parseLine(textLine);
-    const parsedNameToken = parsedLine.nameToken;
-    if (parsedNameToken === undefined) {
+    const lineText = document.lineAt(lineNo);
+    const { name, separator, value, comment } = parseLine(lineText);
+
+    if (name.text.length === 0 && separator === undefined) {
       // empty line or comment-only line, just ignore
       continue;
     }
 
-    const directiveType = parsedNameToken.text.toLowerCase();
+    const type = name.text.toLowerCase();
+    const directiveInfo = DIRECTIVE_INFOS[type];
+
+    const maxParts = directiveInfo ? directiveInfo.params.length : 1;
+    const params = value ? splitTokenWithLimit(value, maxParts) : [];
     const astDirective: AstDirective = {
-      type: directiveType,
-      nameToken: parsedNameToken,
-      valueToken: parsedLine.valueToken,
+      type,
+      name,
+      separator,
+      params,
+      comment,
     };
 
-    switch (directiveType) {
-      case "user-agent":
-        if (currentAstGroup === null || currentAstGroup.hasRule) {
-          // start a new group
-          currentAstGroup = {
-            userAgents: [astDirective],
-            rules: [],
-            startLine: lineNo,
-            endLine: lineNo,
-            hasRule: false,
-          };
-          astRoot.groups.push(currentAstGroup);
-        } else {
-          // continuation of the current group
-          currentAstGroup.userAgents.push(astDirective);
-          currentAstGroup.endLine = lineNo;
-        }
-        break;
+    if (type === "user-agent") {
+      if (currentGroup.hasRule) {
+        currentGroup = createAstGroup();
+        astRoot.groups.push(currentGroup);
+        currentGroup.startLine = lineNo;
+      }
+      currentGroup.userAgents.push(astDirective);
+      currentGroup.endLine = lineNo;
+      continue;
+    }
 
-      case "allow":
-      case "disallow":
-      case "crawl-delay":
-        if (currentAstGroup === null) {
-          // directive without a user-agent
-          astRoot.directives.push(astDirective);
-        } else {
-          currentAstGroup.rules.push(astDirective);
-          currentAstGroup.endLine = lineNo;
-          currentAstGroup.hasRule = true;
-        }
-        break;
-
-      case "sitemap":
-      case "host":
-      case "clean-param":
-      default:
-        // known directives that can appear outside of any group, we put them in the root level
-        astRoot.directives.push(astDirective);
-        if (currentAstGroup !== null) {
-          currentAstGroup.hasRule = true;
-        }
-        break;
+    currentGroup.hasRule = true;
+    if (directiveInfo && directiveInfo.scope === "global") {
+      // known global scoped directive
+      astRoot.globals.push(astDirective);
+    } else {
+      // known user-agent scoped directive or unknown directive
+      currentGroup.rules.push(astDirective);
+      currentGroup.endLine = lineNo;
     }
   }
   return astRoot;
+}
+
+function createAstGroup(): AstGroup {
+  return {
+    userAgents: [],
+    rules: [],
+    startLine: 0,
+    endLine: 0,
+    hasRule: false,
+  };
 }

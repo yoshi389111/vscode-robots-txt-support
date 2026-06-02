@@ -6,12 +6,11 @@ export interface Token {
 }
 
 export interface ParsedLine {
-  nameToken?: Token;
-  valueToken?: Token;
-  commentToken?: Token;
+  name: Token;
+  separator: Token | undefined;
+  value: Token | undefined;
+  comment: Token | undefined;
 }
-
-const REGEX_NOT_SPACE = /\S/;
 
 /**
  * Parses a line of the robots.txt file and extracts the directive, value, and comment.
@@ -19,76 +18,116 @@ const REGEX_NOT_SPACE = /\S/;
  * @returns An object containing the parsed directive, value, and comment.
  */
 export function parseLine(line: vscode.TextLine): ParsedLine {
-  const lineText = line.text;
-  const lineNo = line.lineNumber;
-  const result: ParsedLine = {};
-
-  // comment
-  const commentStart = lineText.indexOf("#");
-  const hasComment = commentStart >= 0;
-  if (hasComment) {
-    const commentEnd = lineText.length;
-    const text = lineText.substring(commentStart + 1);
-    const range = new vscode.Range(lineNo, commentStart, lineNo, commentEnd);
-    result.commentToken = { text, range };
-  }
-
-  const content = hasComment ? lineText.substring(0, commentStart) : lineText;
-  if (content.trim().length === 0) {
-    // empty line
-    return result;
-  }
-
-  // directive name
-  const nameStart = content.search(REGEX_NOT_SPACE);
-  const colonPos = content.indexOf(":");
-  if (colonPos < 0) {
-    // no colon, treat the whole line as directive (invalid but we can report diagnostics later)
-    const text = content.trim().toLowerCase();
-    const nameEnd = nameStart + text.length;
-    const range = new vscode.Range(lineNo, nameStart, lineNo, nameEnd);
-    result.nameToken = { text, range };
-    return result;
-  } else {
-    const text = content.substring(0, colonPos).trim();
-    const nameEnd = nameStart + text.length;
-    const range = new vscode.Range(lineNo, nameStart, lineNo, nameEnd);
-    result.nameToken = { text, range };
-  }
-
-  // directive value
-  const valuePart = content.substring(colonPos + 1);
-  const valueOffset = valuePart.search(REGEX_NOT_SPACE);
-  if (valueOffset >= 0) {
-    const text = valuePart.trim();
-    const valueStart = colonPos + 1 + valueOffset;
-    const valueEnd = valueStart + text.length;
-    const range = new vscode.Range(lineNo, valueStart, lineNo, valueEnd);
-    result.valueToken = { text, range };
-  } else {
-    const valueStart = colonPos + 1;
-    const range = new vscode.Range(lineNo, valueStart, lineNo, valueStart);
-    result.valueToken = { text: "", range };
-  }
-
-  return result;
+  const [content, comment] = splitContentAndComment(line);
+  const tokens = splitToken(content, /:/);
+  return {
+    name: tokens[0],
+    separator: tokens[1],
+    value: tokens[2],
+    comment,
+  };
 }
 
-const REGEX_TOKEN = /\S+/g;
+/**
+ * Splits a line into content and comment parts based on the presence of a '#' character.
+ * @param line The line of text to split.
+ * @returns A tuple containing the content token and an optional comment token.
+ */
+function splitContentAndComment(line: vscode.TextLine): [Token, Token?] {
+  const { text, range } = line;
+  const offset = text.indexOf("#");
+  if (offset < 0) {
+    return [{ text, range }];
+  }
+
+  const splitPosition = range.start.translate(0, offset);
+
+  const contentPart = text.substring(0, offset);
+  const contentRange = new vscode.Range(range.start, splitPosition);
+  const contentToken: Token = { text: contentPart, range: contentRange };
+
+  const commentPart = text.substring(offset);
+  const commentRange = new vscode.Range(splitPosition, range.end);
+  const commentToken: Token = { text: commentPart, range: commentRange };
+
+  return [trimToken(contentToken), trimToken(commentToken)];
+}
 
 /**
- * Splits a token into multiple tokens by spaces. Each resulting token will have the correct range in the document.
+ * Splits a token into parts based on a specified separator regex, with an optional limit on the number of parts.
  * @param token The token to split.
- * @returns An array of tokens obtained by splitting the input token by spaces.
+ * @param sepRegex The regular expression to use as the separator for splitting the token.
+ * @returns An array of tokens resulting from the split operation, with leading and trailing whitespace removed.
  */
-export function splitTokenBySpace(token: Token): Token[] {
-  // `match.index` returned by `matchAll()` must exist.
-  // ref. https://github.com/microsoft/TypeScript/issues/36788
-  return Array.from(token.text.matchAll(REGEX_TOKEN)).map((match) => ({
-    text: match[0],
-    range: new vscode.Range(
-      token.range.start.translate(0, match.index!),
-      token.range.start.translate(0, match.index! + match[0].length),
-    ),
-  }));
+function splitToken(
+  token: Token,
+  sepRegex: RegExp,
+): [Token] | [Token, Token, Token] {
+  const match = token.text.match(sepRegex);
+  if (!match) {
+    return [trimToken(token)];
+  }
+  const separatorLength = match[0].length;
+  const separatorOffset = match.index!;
+  const valueOffset = separatorOffset + separatorLength;
+
+  const separatorPosition = token.range.start.translate(0, separatorOffset);
+  const valuePosition = separatorPosition.translate(0, separatorLength);
+
+  const name = {
+    text: token.text.substring(0, separatorOffset),
+    range: new vscode.Range(token.range.start, separatorPosition),
+  };
+  const separator = {
+    text: token.text.substring(separatorOffset, valueOffset),
+    range: new vscode.Range(separatorPosition, valuePosition),
+  };
+  const value = {
+    text: token.text.substring(valueOffset),
+    range: new vscode.Range(valuePosition, token.range.end),
+  };
+  return [trimToken(name), separator, trimToken(value)];
+}
+
+/**
+ * Trims leading and trailing whitespace from a token's text and adjusts its range accordingly.
+ * @param token The token to trim.
+ * @returns A new token with trimmed text and an updated range that reflects the trimmed content.
+ */
+function trimToken(token: Token): Token {
+  const text = token.text.trim();
+  const offset = token.text.indexOf(text);
+  const start = token.range.start.translate(0, offset);
+  const end = start.translate(0, text.length);
+  const range = new vscode.Range(start, end);
+  return { text, range };
+}
+
+/**
+ * Splits a token into multiple parts based on a specified separator string, with an optional limit on the number of parts.
+ * This function is designed to handle cases where a directive may have multiple parameters separated by spaces.
+ * @param value The token to split, which may contain multiple parameters.
+ * @param maxParts The maximum number of parts to split into. If the token contains more parts than this limit, the remaining text will be included in the last part.
+ * @returns An array of tokens resulting from the split operation, with leading and trailing whitespace removed from each part.
+ */
+export function splitTokenWithLimit(value: Token, maxParts: number): Token[] {
+  if (value.text.length === 0) {
+    return [];
+  }
+
+  const parts: Token[] = [];
+  let remainingToken = value;
+  for (let i = 0; i < maxParts - 1; i++) {
+    const divided = splitToken(remainingToken, /\s+/);
+    parts.push(divided[0]);
+    if (divided.length === 1) {
+      return parts;
+    }
+    remainingToken = divided[2];
+  }
+
+  if (0 < remainingToken.text.length) {
+    parts.push(remainingToken);
+  }
+  return parts;
 }
