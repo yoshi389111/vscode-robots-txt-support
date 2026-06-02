@@ -14,9 +14,6 @@
 			"include": "#sitemap"
 		},
 		{
-			"include": "#crawl-delay"
-		},
-		{
 			"include": "#unknown-directives"
 		},
 		{
@@ -80,25 +77,11 @@
 				}
 			}
 		},
-		"crawl-delay": {
-			"match": "^\\s*(?i:(crawl-delay))\\s*(:)\\s*([^#\\s]*)?",
-			"captures": {
-				"1": {
-					"name": "keyword.operator.crawl-delay.robots-txt"
-				},
-				"2": {
-					"name": "punctuation.colon.separator.robots-txt"
-				},
-				"3": {
-					"name": "constant.numeric.robots-txt"
-				}
-			}
-		},
 		"unknown-directives": {
 			"match": "^\\s*([a-zA-Z_][-a-zA-Z0-9_]*)\\s*(:)",
 			"captures": {
 				"1": {
-					"name": "invalid.illegal.unknown-directive.robots-txt"
+					"name": "keyword.operator.unknown-directive.robots-txt"
 				},
 				"2": {
 					"name": "punctuation.colon.separator.robots-txt"

@@ -1,42 +1,77 @@
+/**
+ * Data structures for directive information used in hover and signature help.
+ */
 export interface ParameterInfo {
   label: string;
-  documentation: string;
-}
-
-export interface DirectiveInfo {
-  example: string;
-  usage: string;
   description: string;
-  details: string[];
-  reference?: {
-    text: string;
-    url: string;
-  }[];
-  params: ParameterInfo[];
-  hiddenCompletion?: boolean;
+  validationType:
+    | "path-pattern"
+    | "url"
+    | "number"
+    | "product-token"
+    | "query-params"
+    | "no-check";
+  example: string;
 }
 
+/**
+ * Information about a web crawler.
+ */
+export interface WebLinkInfo {
+  text: string;
+  url: string;
+}
+
+/**
+ * Information about a robots.txt directive.
+ */
+export interface DirectiveInfo {
+  /** The name of the directive. */
+  name: string;
+  /** A brief description of the directive's purpose. */
+  description: string;
+  /** Detailed information about the directive. */
+  details: string[];
+  /** References to external resources related to the directive. */
+  reference: WebLinkInfo[];
+  /** Information about the directive's parameters. */
+  params: ParameterInfo[];
+  /** Whether this directive should be hidden from completion suggestions. */
+  hiddenCompletion: boolean;
+  /** Whether this directive is deprecated and should be indicated as such in the UI. */
+  isDeprecated: boolean;
+  /** The scope of this directive, indicating whether it applies globally or to specific user-agents. */
+  scope: "global" | "user-agent";
+}
+
+/**
+ * A record of all known directives, keyed by their lowercase name.
+ */
 export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
   "user-agent": {
-    example: "User-agent: ExampleBot",
-    usage: "User-agent: <product-token>",
+    name: "User-agent",
     description: "Specifies which crawler the following rule group applies to.",
     details: [
       "The value is a crawler name (product token) or `*` for all crawlers.",
       "Matching is case-insensitive and uses the user-agent product token.",
       "Consecutive `User-agent` lines belong to the same group.",
     ],
+    reference: [],
     params: [
       {
         label: "<product-token>",
-        documentation: "The name of the crawler to target.",
+        description: "The name of the crawler to target.",
+        validationType: "product-token",
+        example: "ExampleBot",
       },
     ],
+    hiddenCompletion: false,
+    isDeprecated: false,
+    scope: "global",
   },
 
   disallow: {
-    example: "Disallow: /command/*.php$",
-    usage: "Disallow: <path-pattern>",
+    name: "Disallow",
     description:
       "Specifies path patterns that are disallowed for matching crawlers.",
     details: [
@@ -45,17 +80,22 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       "`*` matches any sequence; `$` anchors the end of the path.",
       "An empty value allows all paths.",
     ],
+    reference: [],
     params: [
       {
         label: "<path-pattern>",
-        documentation: "The path pattern that should not be crawled.",
+        description: "The path pattern that should not be crawled.",
+        validationType: "path-pattern",
+        example: "/command/*.php$",
       },
     ],
+    hiddenCompletion: false,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   allow: {
-    example: "Allow: /articles/",
-    usage: "Allow: <path-pattern>",
+    name: "Allow",
     description:
       "Specifies path patterns that are allowed for matching crawlers.",
     details: [
@@ -64,17 +104,22 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
       "`*` matches any sequence; `$` anchors the end of the path.",
       "`Allow` rules can override broader `Disallow` rules.",
     ],
+    reference: [],
     params: [
       {
         label: "<path-pattern>",
-        documentation: "The path pattern that can be crawled.",
+        description: "The path pattern that can be crawled.",
+        validationType: "path-pattern",
+        example: "/articles/",
       },
     ],
+    hiddenCompletion: false,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   sitemap: {
-    example: "Sitemap: https://www.example.com/sitemap.xml",
-    usage: "Sitemap: <sitemap-url>",
+    name: "Sitemap",
     description: "Specifies the location of a sitemap file.",
     details: [
       "The value must be an absolute URL.",
@@ -90,32 +135,40 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<sitemap-url>",
-        documentation: "The sitemap file URL.",
+        description: "The sitemap file URL.",
+        validationType: "url",
+        example: "https://www.example.com/sitemap.xml",
       },
     ],
+    hiddenCompletion: false,
+    isDeprecated: false,
+    scope: "global",
   },
 
   "crawl-delay": {
-    example: "Crawl-delay: 10",
-    usage: "Crawl-delay: <seconds>",
+    name: "Crawl-delay",
     description: "Specifies the minimum delay between crawler requests.",
     details: [
       "The value is expressed in seconds.",
       "Applies to the current User-agent group.",
       "This directive is non-standard and may be ignored by some crawlers.",
     ],
+    reference: [],
     params: [
       {
         label: "<seconds>",
-        documentation:
-          "The number of seconds to wait between crawler requests.",
+        description: "The number of seconds to wait between crawler requests.",
+        validationType: "number",
+        example: "10",
       },
     ],
+    hiddenCompletion: false,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   "clean-param": {
-    example: "Clean-param: sessionid&ref /articles/",
-    usage: "Clean-param: <params> [<path-pattern>]",
+    name: "Clean-param",
     description:
       "Specifies URL query parameters that do not affect page content.",
     details: [
@@ -133,20 +186,25 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<params>",
-        documentation: "The query parameters to ignore.",
+        description: "The query parameters to ignore.",
+        validationType: "query-params",
+        example: "sessionid&ref",
       },
       {
         label: "<path-pattern>",
-        documentation:
+        description:
           "The path pattern for which the parameters should be ignored (optional).",
+        validationType: "path-pattern",
+        example: "/articles/",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: false,
+    scope: "global",
   },
 
   host: {
-    example: "Host: www.example.com",
-    usage: "Host: <domain>",
+    name: "Host",
     description: "Specifies the canonical host for the site.",
     details: [
       "This directive is non-standard and was historically supported by Yandex.",
@@ -166,15 +224,18 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<domain>",
-        documentation: "The canonical hostname.",
+        description: "The canonical hostname.",
+        validationType: "no-check",
+        example: "www.example.com",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: true,
+    scope: "global",
   },
 
   noindex: {
-    example: "Noindex: /private/",
-    usage: "Noindex: <path-pattern>",
+    name: "Noindex",
     description: "Requests that matching pages not be indexed.",
     details: [
       "This directive is non-standard and not recognized by most major crawlers.",
@@ -193,83 +254,105 @@ export const DIRECTIVE_INFOS: Record<string, DirectiveInfo> = {
     params: [
       {
         label: "<path-pattern>",
-        documentation: "A path pattern whose pages should not be indexed.",
+        description: "A path pattern whose pages should not be indexed.",
+        validationType: "no-check",
+        example: "/private/",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: true,
+    scope: "global",
   },
 
   "request-rate": {
-    example: "Request-rate: 1/5 0800-1800",
-    usage: "Request-rate: <rate> [<time-range>]",
+    name: "Request-rate",
     description: "Specifies a crawl rate limit.",
     details: [
       "This directive is non-standard.",
       "Limited support; most crawlers ignore it.",
     ],
+    reference: [],
     params: [
       {
         label: "<rate>",
-        documentation: "The number of requests allowed within a time period.",
+        description: "The number of requests allowed within a time period.",
+        validationType: "no-check",
+        example: "1/5",
       },
       {
         label: "<time-range>",
-        documentation:
+        description:
           "The time range during which the rate limit applies (optional).",
+        validationType: "no-check",
+        example: "0800-1800",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   "visit-time": {
-    example: "Visit-time: 0600-0845",
-    usage: "Visit-time: <time-range>",
+    name: "Visit-time",
     description: "Specifies preferred crawling time ranges.",
     details: [
       "This directive is non-standard.",
       "Limited support; most crawlers ignore it.",
     ],
+    reference: [],
     params: [
       {
         label: "<time-range>",
-        documentation: "A preferred crawling time range.",
+        description: "A preferred crawling time range.",
+        validationType: "no-check",
+        example: "0600-1845",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   "robot-version": {
-    example: "Robot-version: 2.0",
-    usage: "Robot-version: <version>",
+    name: "Robot-version",
     description: "Specifies the robots.txt file version.",
     details: [
       "This directive is non-standard.",
       "Limited support; most crawlers ignore it.",
     ],
+    reference: [],
     params: [
       {
         label: "<version>",
-        documentation: "The robots.txt file version.",
+        description: "The robots.txt file version.",
+        validationType: "no-check",
+        example: "2.0",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: false,
+    scope: "user-agent",
   },
 
   comment: {
-    example: "Comment: This is a comment",
-    usage: "Comment: <text>",
+    name: "Comment",
     description: "Specifies a comment in the robots.txt file.",
     details: [
       "This directive is non-standard.",
       "Limited support; most crawlers ignore it.",
       "Use `#` for comments instead of this directive.",
     ],
+    reference: [],
     params: [
       {
         label: "<text>",
-        documentation: "The comment text.",
+        description: "The comment text.",
+        validationType: "no-check",
+        example: "This is a comment",
       },
     ],
     hiddenCompletion: true,
+    isDeprecated: true,
+    scope: "global",
   },
 };

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseRobotsTxt } from "./documentParser";
+import { parseRobotsTxt } from "./parser/documentParser";
 
 export class RobotsTxtFoldingRangeProvider
   implements vscode.FoldingRangeProvider

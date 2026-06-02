@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { parseLine } from "./lineParser";
-import * as constants from "./constants";
-import { DIRECTIVE_INFOS } from "./directiveInfo";
-import { CRAWLER_INFOS, CrawlerInfo } from "./crawlerInfo";
+import { parseLine } from "./parser/lineParser";
+import * as constants from "./data/constants";
+import { DIRECTIVE_INFOS } from "./data/directiveInfo";
+import { CRAWLER_INFOS, CrawlerInfo } from "./data/crawlerInfo";
 
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   public provideHover(
@@ -11,8 +11,8 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken,
   ): vscode.ProviderResult<vscode.Hover> {
     const parsedLine = parseLine(document.lineAt(position.line));
-    const directiveKey = parsedLine.nameToken?.text.toLowerCase();
-    const crawlerKey = parsedLine.valueToken?.text.toLowerCase();
+    const directiveKey = parsedLine.name?.text.toLowerCase();
+    const crawlerKey = parsedLine.value?.text.toLowerCase();
 
     if (directiveKey === undefined) {
       // empty line or comment-only line, just ignore
@@ -28,12 +28,14 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     const crawlerInfo =
       directiveKey === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
 
-    const md = new vscode.MarkdownString();
+    const exampleParams = directive.params.map((p) => p.example).join(" ");
 
     // example (code block)
     const example = crawlerInfo
       ? `User-agent: ${crawlerInfo.name}`
-      : directive.example;
+      : `${directive.name}: ${exampleParams}`;
+
+    const md = new vscode.MarkdownString();
     md.appendCodeblock(example, constants.LANGUAGE_ID);
 
     // description
@@ -47,7 +49,7 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     md.appendMarkdown("**Parameters:**\n\n");
     for (const param of directive.params) {
       md.appendMarkdown(
-        `- \`${param.label}\` ― ${escapeMarkdown(param.documentation)}\n`,
+        `- \`${param.label}\` ― ${escapeMarkdown(param.description)}\n`,
       );
     }
     md.appendMarkdown("\n");
@@ -59,9 +61,9 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
       );
     }
     // reference
-    if (directive.reference || crawlerInfo?.url) {
+    if (directive.reference.length > 0 || crawlerInfo?.url) {
       md.appendMarkdown("**References:**\n\n");
-      directive.reference?.forEach((ref) => {
+      directive.reference.forEach((ref) => {
         md.appendMarkdown(`- [${escapeMarkdown(ref.text)}](${ref.url})\n`);
       });
       if (crawlerInfo?.url) {
