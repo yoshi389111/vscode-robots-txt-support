@@ -14,12 +14,15 @@ export class RobotsTxtCompletionItemProvider
     _context: vscode.CompletionContext,
   ): vscode.ProviderResult<vscode.CompletionItem[]> {
     const lineText = document.lineAt(position.line);
-    const { name, separator, value } = parseLine(lineText);
+    const { name, separator, value, comment } = parseLine(lineText);
 
     const namePart = name.text.toLowerCase();
 
     // If the line is empty or only contains whitespace, suggest all directives
-    if (name.range.contains(position)) {
+    if (
+      name.range.contains(position) ||
+      (name.text.length === 0 && comment === undefined)
+    ) {
       const inputLength = position.character - name.range.start.character;
       const inputPart = namePart.substring(0, inputLength);
       const endPosition = value
