@@ -14,9 +14,6 @@
 			"include": "#sitemap"
 		},
 		{
-			"include": "#crawl-delay"
-		},
-		{
 			"include": "#unknown-directives"
 		},
 		{
