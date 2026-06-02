@@ -75,7 +75,6 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
       currentGroup.endLine = lineNo;
       continue;
     }
-    }
 
     currentGroup.hasRule = true;
     if (directiveInfo && directiveInfo.scope === "global") {
