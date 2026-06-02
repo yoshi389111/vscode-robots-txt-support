@@ -198,12 +198,13 @@ export class RobotsTxtDiagnosticUpdater {
     const nameToken = astDirective.name;
 
     const directiveInfo = DIRECTIVE_INFOS[directiveType];
-    if (!directiveInfo) {
-      // The directive is unknown
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_UNKNOWN, nameToken.range);
-    } else if (!REGEX_DIRECTIVE_NAME.test(directiveType)) {
+
+    if (!REGEX_DIRECTIVE_NAME.test(directiveType)) {
       // The directive name is invalid
       this.add(DIAGNOSTIC_CODES.DIRECTIVE_NAME_INVALID, nameToken.range);
+    } else if (!directiveInfo) {
+      // The directive is unknown
+      this.add(DIAGNOSTIC_CODES.DIRECTIVE_UNKNOWN, nameToken.range);
     }
 
     if (astDirective.separator === undefined) {
