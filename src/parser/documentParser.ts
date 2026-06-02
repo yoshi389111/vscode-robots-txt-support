@@ -66,7 +66,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
     };
 
     if (type === "user-agent") {
-      if (currentGroup.hasRule) {
+      if (currentGroup === astRoot.outside || currentGroup.hasRule) {
         currentGroup = createAstGroup();
         astRoot.groups.push(currentGroup);
         currentGroup.startLine = lineNo;
@@ -74,6 +74,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
       currentGroup.userAgents.push(astDirective);
       currentGroup.endLine = lineNo;
       continue;
+    }
     }
 
     currentGroup.hasRule = true;
