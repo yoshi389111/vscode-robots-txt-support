@@ -3,8 +3,8 @@ import * as path from "path";
 import { parseRobotsTxt, AstDirective } from "./parser/documentParser";
 import { Span } from "./parser/span";
 import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
-
-const EXTENSION_NAME = "Robots.txt support";
+import { getLogger } from "./utils/logger";
+import * as constants from "./data/constants";
 
 interface DiagnosticInfo {
   code: string;
@@ -121,6 +121,8 @@ const DIAGNOSTIC_CODES = {
 };
 
 export class RobotsTxtDiagnosticUpdater {
+  private readonly log = getLogger();
+
   /** The list of collected diagnostics. */
   private diagnostics: vscode.Diagnostic[] = [];
 
@@ -128,67 +130,77 @@ export class RobotsTxtDiagnosticUpdater {
     document: vscode.TextDocument,
     collection: vscode.DiagnosticCollection,
   ): Promise<void> {
-    this.diagnostics = [];
+    this.log.trace("Updating diagnostics for document", document.fileName);
+    try {
+      this.diagnostics = [];
 
-    if (!this.isValidFileName(document)) {
-      // The file name is not 'robots.txt'
-      this.add(DIAGNOSTIC_CODES.FILENAME_INVALID, new vscode.Range(0, 0, 0, 0));
-    }
-
-    if (document.encoding === "utf8bom") {
-      // The file contains a UTF-8 BOM
-      this.add(
-        DIAGNOSTIC_CODES.ENCODING_UTF8_BOM,
-        new vscode.Range(0, 0, 0, 0),
-      );
-    } else if (document.encoding !== "utf8") {
-      // The file encoding is not UTF-8
-      this.add(
-        DIAGNOSTIC_CODES.ENCODING_NOT_UTF8,
-        new vscode.Range(0, 0, 0, 0),
-      );
-    }
-
-    // Check for file size
-    const isFileSizeValid = await this.isValidFileSize(document);
-    if (!isFileSizeValid) {
-      this.add(DIAGNOSTIC_CODES.FILESIZE_LARGE, new vscode.Range(0, 0, 0, 0));
-    }
-
-    // Parse the robots.txt file
-    const astRoot = parseRobotsTxt(document);
-
-    for (const astDirective of astRoot.outside.rules) {
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_OUTSIDE, astDirective.name.range);
-      this.checkDirective(astDirective);
-    }
-
-    for (const astDirective of astRoot.globals) {
-      this.checkDirective(astDirective);
-    }
-
-    for (const group of astRoot.groups) {
-      for (const userAgent of group.userAgents) {
-        this.checkDirective(userAgent);
-      }
-
-      for (const rule of group.rules) {
-        this.checkDirective(rule);
-      }
-
-      const hasAllowOrDisallowRule = group.rules.some((rule) =>
-        ["allow", "disallow"].includes(rule.type),
-      );
-      if (!hasAllowOrDisallowRule) {
-        // The group does not contain allow/disallow directives
+      if (!this.isValidFileName(document)) {
+        // The file name is not 'robots.txt'
         this.add(
-          DIAGNOSTIC_CODES.GROUP_MISSING_ALLOW_DISALLOW,
-          group.userAgents[0]!.name.range,
+          DIAGNOSTIC_CODES.FILENAME_INVALID,
+          new vscode.Range(0, 0, 0, 0),
         );
       }
-    }
 
-    collection.set(document.uri, this.diagnostics);
+      if (document.encoding === "utf8bom") {
+        // The file contains a UTF-8 BOM
+        this.add(
+          DIAGNOSTIC_CODES.ENCODING_UTF8_BOM,
+          new vscode.Range(0, 0, 0, 0),
+        );
+      } else if (document.encoding !== "utf8") {
+        // The file encoding is not UTF-8
+        this.add(
+          DIAGNOSTIC_CODES.ENCODING_NOT_UTF8,
+          new vscode.Range(0, 0, 0, 0),
+        );
+      }
+
+      // Check for file size
+      const isFileSizeValid = await this.isValidFileSize(document);
+      if (!isFileSizeValid) {
+        this.add(DIAGNOSTIC_CODES.FILESIZE_LARGE, new vscode.Range(0, 0, 0, 0));
+      }
+
+      // Parse the robots.txt file
+      const astRoot = parseRobotsTxt(document);
+
+      for (const astDirective of astRoot.outside.rules) {
+        this.add(DIAGNOSTIC_CODES.DIRECTIVE_OUTSIDE, astDirective.name.range);
+        this.checkDirective(astDirective);
+      }
+
+      for (const astDirective of astRoot.globals) {
+        this.checkDirective(astDirective);
+      }
+
+      for (const group of astRoot.groups) {
+        for (const userAgent of group.userAgents) {
+          this.checkDirective(userAgent);
+        }
+
+        for (const rule of group.rules) {
+          this.checkDirective(rule);
+        }
+
+        const hasAllowOrDisallowRule = group.rules.some((rule) =>
+          ["allow", "disallow"].includes(rule.type),
+        );
+        if (!hasAllowOrDisallowRule) {
+          // The group does not contain allow/disallow directives
+          this.add(
+            DIAGNOSTIC_CODES.GROUP_MISSING_ALLOW_DISALLOW,
+            group.userAgents[0]!.name.range,
+          );
+        }
+      }
+
+      collection.set(document.uri, this.diagnostics);
+    } catch (error) {
+      this.log.error("Error updating diagnostics for document", error);
+    } finally {
+      this.log.trace("Finished updating diagnostics for document");
+    }
   }
 
   private checkDirective(astDirective: AstDirective) {
@@ -368,7 +380,7 @@ export class RobotsTxtDiagnosticUpdater {
       range,
       severity: diagnosticInfo.severity,
       code: diagnosticInfo.code,
-      source: EXTENSION_NAME,
+      source: constants.EXTENSION_DISPLAY_NAME,
     };
     if (diagnosticInfo.tag) {
       diagnostic.tags = [diagnosticInfo.tag];

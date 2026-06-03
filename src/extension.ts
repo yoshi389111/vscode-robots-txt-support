@@ -5,6 +5,7 @@ import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider
 import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { DelayExecutor } from "./utils/DelayExecutor";
+import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -16,12 +17,17 @@ export function deactivate() {}
 /**
  * Initializes the extension by registering all providers and listeners.
  * To push all at once with `activate`, Disposable is returned sequentially.
- * @param _context The extension context provided by VS Code
+ * @param context The extension context provided by VS Code
  * @returns A generator yielding disposables for all registered providers and listeners
  */
 function* initializeExtension(
-  _context: vscode.ExtensionContext,
+  context: vscode.ExtensionContext,
 ): Iterable<vscode.Disposable> {
+  // Initialize the logger and log the activation event
+  const log = initLogger(constants.EXTENSION_DISPLAY_NAME);
+  yield log;
+  log.trace("Extension activated", context.extension.id);
+
   // Register the completion item provider
   yield vscode.languages.registerCompletionItemProvider(
     constants.LANGUAGE_ID,
