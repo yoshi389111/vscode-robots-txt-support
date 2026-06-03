@@ -126,6 +126,11 @@ export class RobotsTxtDiagnosticUpdater {
   /** The list of collected diagnostics. */
   private diagnostics: vscode.Diagnostic[] = [];
 
+  /**
+   * Updates the diagnostics for the given document by validating its content and structure according to the rules of robots.txt files.
+   * @param document The text document to be validated and for which diagnostics will be updated.
+   * @param collection The diagnostic collection to which the generated diagnostics will be added.
+   */
   public async update(
     document: vscode.TextDocument,
     collection: vscode.DiagnosticCollection,
@@ -136,7 +141,7 @@ export class RobotsTxtDiagnosticUpdater {
 
       if (!this.isValidFileName(document)) {
         // The file name is not 'robots.txt'
-        this.add(
+        this.addDiagnostic(
           DIAGNOSTIC_CODES.FILENAME_INVALID,
           new vscode.Range(0, 0, 0, 0),
         );
@@ -144,13 +149,13 @@ export class RobotsTxtDiagnosticUpdater {
 
       if (document.encoding === "utf8bom") {
         // The file contains a UTF-8 BOM
-        this.add(
+        this.addDiagnostic(
           DIAGNOSTIC_CODES.ENCODING_UTF8_BOM,
           new vscode.Range(0, 0, 0, 0),
         );
       } else if (document.encoding !== "utf8") {
         // The file encoding is not UTF-8
-        this.add(
+        this.addDiagnostic(
           DIAGNOSTIC_CODES.ENCODING_NOT_UTF8,
           new vscode.Range(0, 0, 0, 0),
         );
@@ -159,14 +164,20 @@ export class RobotsTxtDiagnosticUpdater {
       // Check for file size
       const isFileSizeValid = await this.isValidFileSize(document);
       if (!isFileSizeValid) {
-        this.add(DIAGNOSTIC_CODES.FILESIZE_LARGE, new vscode.Range(0, 0, 0, 0));
+        this.addDiagnostic(
+          DIAGNOSTIC_CODES.FILESIZE_LARGE,
+          new vscode.Range(0, 0, 0, 0),
+        );
       }
 
       // Parse the robots.txt file
       const astRoot = parseRobotsTxt(document);
 
       for (const astDirective of astRoot.outside.rules) {
-        this.add(DIAGNOSTIC_CODES.DIRECTIVE_OUTSIDE, astDirective.name.range);
+        this.addDiagnostic(
+          DIAGNOSTIC_CODES.DIRECTIVE_OUTSIDE,
+          astDirective.name.range,
+        );
         this.checkDirective(astDirective);
       }
 
@@ -188,7 +199,7 @@ export class RobotsTxtDiagnosticUpdater {
         );
         if (!hasAllowOrDisallowRule) {
           // The group does not contain allow/disallow directives
-          this.add(
+          this.addDiagnostic(
             DIAGNOSTIC_CODES.GROUP_MISSING_ALLOW_DISALLOW,
             group.userAgents[0]!.name.range,
           );
@@ -203,7 +214,11 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkDirective(astDirective: AstDirective) {
+  /**
+   * Checks the validity of a directive and its parameters, adding diagnostics for any issues found.
+   * @param astDirective The AST node representing the directive to be checked.
+   */
+  private checkDirective(astDirective: AstDirective): void {
     const REGEX_DIRECTIVE_NAME = /^[a-zA-Z]([a-zA-Z0-9_-]*[a-zA-Z])?$/;
 
     const directiveType = astDirective.type;
@@ -213,15 +228,21 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (!REGEX_DIRECTIVE_NAME.test(directiveType)) {
       // The directive name is invalid
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_NAME_INVALID, nameToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.DIRECTIVE_NAME_INVALID,
+        nameToken.range,
+      );
     } else if (!directiveInfo) {
       // The directive is unknown
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_UNKNOWN, nameToken.range);
+      this.addDiagnostic(DIAGNOSTIC_CODES.DIRECTIVE_UNKNOWN, nameToken.range);
     }
 
     if (astDirective.separator === undefined) {
       // The directive is missing a colon
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_MISSING_COLON, nameToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.DIRECTIVE_MISSING_COLON,
+        nameToken.range,
+      );
       return;
     }
 
@@ -231,7 +252,10 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (directiveInfo.isDeprecated) {
       // The directive is deprecated
-      this.add(DIAGNOSTIC_CODES.DIRECTIVE_DEPRECATED, nameToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.DIRECTIVE_DEPRECATED,
+        nameToken.range,
+      );
     }
 
     const maxParams = Math.min(
@@ -243,6 +267,11 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
+  /**
+   * Checks the validity of a directive parameter, adding diagnostics for any issues found.
+   * @param paramInfo The information about the parameter.
+   * @param paramToken The AST token representing the parameter to be checked.
+   */
   private checkParameter(paramInfo: ParameterInfo, paramToken: Span): void {
     switch (paramInfo.validationType) {
       case "product-token":
@@ -270,75 +299,120 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
+  /**
+   * Checks the validity of a product token parameter, adding a diagnostic if it is invalid.
+   * @param productToken The AST token representing the product token parameter to be checked.
+   */
   private checkParamProductToken(productToken: Span): void {
     const REGEX_PRODUCT_TOKEN = /^([a-zA-Z_-]+$|^\*)$/;
     if (!REGEX_PRODUCT_TOKEN.test(productToken.text)) {
       // The product token is invalid
-      this.add(DIAGNOSTIC_CODES.PRODUCT_TOKEN_INVALID, productToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.PRODUCT_TOKEN_INVALID,
+        productToken.range,
+      );
     }
   }
 
+  /**
+   * Checks the validity of a path pattern parameter, adding diagnostics for any issues found.
+   * @param paramToken The AST token representing the path pattern parameter to be checked.
+   */
   private checkParamPathPattern(paramToken: Span): void {
     if (paramToken.text === "") {
       return;
     }
     if (!/^[-$%&*./0-9=?A-Z_a-z~]+$/.test(paramToken.text)) {
       // The path pattern contains unencoded characters that should be URL-encoded
-      this.add(
+      this.addDiagnostic(
         DIAGNOSTIC_CODES.PATH_PATTERN_INVALID_URLENCODE,
         paramToken.range,
       );
     }
     if (!paramToken.text.startsWith("/")) {
       // The path pattern does not start with a slash
-      this.add(DIAGNOSTIC_CODES.PATH_PATTERN_NOT_START_SLASH, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.PATH_PATTERN_NOT_START_SLASH,
+        paramToken.range,
+      );
     }
     if (paramToken.text.lastIndexOf("$", paramToken.text.length - 2) !== -1) {
       // The '$' character is only allowed at the end of the path pattern
-      this.add(DIAGNOSTIC_CODES.PATH_PATTERN_DOLLAR, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.PATH_PATTERN_DOLLAR,
+        paramToken.range,
+      );
     }
     if (paramToken.text.endsWith("*")) {
       // The wildcard is not necessary at the end of the path pattern
-      this.add(
+      this.addDiagnostic(
         DIAGNOSTIC_CODES.PATH_PATTERN_UNNECESSARY_WILDCARD,
         paramToken.range,
       );
     }
     if (paramToken.text.includes("**")) {
       // The '**' pattern is not necessary (use a single '*')
-      this.add(DIAGNOSTIC_CODES.PATH_PATTERN_DOUBLE_ASTERISK, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.PATH_PATTERN_DOUBLE_ASTERISK,
+        paramToken.range,
+      );
     }
   }
 
+  /**
+   * Checks the validity of a URL parameter, adding a diagnostic if it is invalid.
+   * @param urlToken The AST token representing the URL parameter to be checked.
+   */
   private checkParamUrl(urlToken: Span): void {
     if (!this.isValidUri(urlToken.text)) {
       // The directive value is not a valid URL
-      this.add(DIAGNOSTIC_CODES.URL_INVALID, urlToken.range);
+      this.addDiagnostic(DIAGNOSTIC_CODES.URL_INVALID, urlToken.range);
     }
   }
 
+  /**
+   * Checks the validity of a numeric parameter, adding diagnostics for any issues found.
+   * @param paramToken The AST token representing the numeric parameter to be checked.
+   */
   private checkParamNumeric(paramToken: Span): void {
     if (!/^\d+$/.test(paramToken.text)) {
       // The directive value is not a numeric
-      this.add(DIAGNOSTIC_CODES.NOT_NUMERIC, paramToken.range);
+      this.addDiagnostic(DIAGNOSTIC_CODES.NOT_NUMERIC, paramToken.range);
     }
     if (/^0+\d+$/.test(paramToken.text)) {
       // The directive value has leading zeros
-      this.add(DIAGNOSTIC_CODES.NUMBER_LEADING_ZERO, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_CODES.NUMBER_LEADING_ZERO,
+        paramToken.range,
+      );
     }
   }
 
+  /**
+   * Checks the validity of a query parameters parameter, adding a diagnostic if it is invalid.
+   * @param paramToken The AST token representing the query parameters parameter to be checked.
+   */
   private checkParamQueryParams(paramToken: Span): void {
     if (!/^\w+(\&\w+)*$/.test(paramToken.text)) {
       // The directive value is invalid (query parameters should be in the format of 'key1&key2&key3')
-      this.add(DIAGNOSTIC_CODES.PARAM_INVALID, paramToken.range);
+      this.addDiagnostic(DIAGNOSTIC_CODES.PARAM_INVALID, paramToken.range);
     }
   }
 
+  /**
+   * Checks if the given document has a valid file name (robots.txt).
+   * @param document The text document to check.
+   * @return True if the file name is valid, false otherwise.
+   */
   private isValidFileName(document: vscode.TextDocument): boolean {
     return path.basename(document.fileName) === "robots.txt";
   }
 
+  /**
+   * Checks if the given document has a valid file size (not exceeding 500 KiB).
+   * @param document The text document to check.
+   * @returns True if the file size is valid, false otherwise.
+   */
   private async isValidFileSize(
     document: vscode.TextDocument,
   ): Promise<boolean> {
@@ -374,7 +448,10 @@ export class RobotsTxtDiagnosticUpdater {
    * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, message, and optional tag.
    * @param range The range in the document where the diagnostic should be applied.
    */
-  public add(diagnosticInfo: DiagnosticInfo, range: vscode.Range): void {
+  public addDiagnostic(
+    diagnosticInfo: DiagnosticInfo,
+    range: vscode.Range,
+  ): void {
     const diagnostic: vscode.Diagnostic = {
       message: diagnosticInfo.message,
       range,
