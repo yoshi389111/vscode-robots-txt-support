@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { parseRobotsTxt, AstDirective } from "./parser/documentParser";
-import { Token } from "./parser/lineParser";
+import { Span } from "./parser/span";
 import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
 
 const EXTENSION_NAME = "Robots.txt support";
@@ -231,7 +231,7 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkParameter(paramInfo: ParameterInfo, paramToken: Token): void {
+  private checkParameter(paramInfo: ParameterInfo, paramToken: Span): void {
     switch (paramInfo.validationType) {
       case "product-token":
         this.checkParamProductToken(paramToken);
@@ -258,7 +258,7 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkParamProductToken(productToken: Token): void {
+  private checkParamProductToken(productToken: Span): void {
     const REGEX_PRODUCT_TOKEN = /^([a-zA-Z_-]+$|^\*)$/;
     if (!REGEX_PRODUCT_TOKEN.test(productToken.text)) {
       // The product token is invalid
@@ -266,7 +266,7 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkParamPathPattern(paramToken: Token): void {
+  private checkParamPathPattern(paramToken: Span): void {
     if (paramToken.text === "") {
       return;
     }
@@ -298,14 +298,14 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkParamUrl(urlToken: Token): void {
+  private checkParamUrl(urlToken: Span): void {
     if (!this.isValidUri(urlToken.text)) {
       // The directive value is not a valid URL
       this.add(DIAGNOSTIC_CODES.URL_INVALID, urlToken.range);
     }
   }
 
-  private checkParamNumeric(paramToken: Token): void {
+  private checkParamNumeric(paramToken: Span): void {
     if (!/^\d+$/.test(paramToken.text)) {
       // The directive value is not a numeric
       this.add(DIAGNOSTIC_CODES.NOT_NUMERIC, paramToken.range);
@@ -316,7 +316,7 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
-  private checkParamQueryParams(paramToken: Token): void {
+  private checkParamQueryParams(paramToken: Span): void {
     if (!/^\w+(\&\w+)*$/.test(paramToken.text)) {
       // The directive value is invalid (query parameters should be in the format of 'key1&key2&key3')
       this.add(DIAGNOSTIC_CODES.PARAM_INVALID, paramToken.range);

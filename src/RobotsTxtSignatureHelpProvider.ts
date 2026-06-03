@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { parseLine, splitTokenWithLimit, Token } from "./parser/lineParser";
+import { parseLine, splitTokenWithLimit } from "./parser/lineParser";
+import { Span } from "./parser/span";
 import { DIRECTIVE_INFOS, DirectiveInfo } from "./data/directiveInfo";
 
 /**
@@ -58,24 +59,24 @@ export class RobotsTxtSignatureHelpProvider
 /**
  * Decides which parameter is active based on the cursor position.
  * @param directiveInfo The directive information containing the parameters.
- * @param valueToken The token representing the directive value, which may contain multiple parameters separated by spaces.
+ * @param valueSpan The span representing the directive value, which may contain multiple parameters separated by spaces.
  * @param cursorPosition The current position of the cursor in the document.
  * @returns The index of the active parameter.
  */
 function decideActiveParameter(
   directiveInfo: DirectiveInfo,
-  valueToken: Token | undefined,
+  valueSpan: Span | undefined,
   cursorPosition: vscode.Position,
 ): number {
   if (directiveInfo.params.length <= 1) {
     return 0;
   }
 
-  if (!valueToken) {
+  if (!valueSpan) {
     return 0;
   }
 
-  const tokens = splitTokenWithLimit(valueToken, directiveInfo.params.length);
+  const tokens = splitTokenWithLimit(valueSpan, directiveInfo.params.length);
   const activeParamIndex = directiveInfo.params.findIndex(
     (_, index) =>
       tokens.length <= index || tokens[index]?.range.contains(cursorPosition),

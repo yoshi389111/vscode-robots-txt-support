@@ -1,25 +1,22 @@
 import * as vscode from "vscode";
+import { Span, trimSpan, subspan, isEmptySpan } from "./span";
 
-export interface Token {
-  text: string;
-  range: vscode.Range;
-}
-
+/** Represents a parsed line of the robots.txt file */
 export interface ParsedLine {
-  name: Token;
-  separator: Token | undefined;
-  value: Token | undefined;
-  comment: Token | undefined;
+  readonly name: Span;
+  readonly separator: Span | undefined;
+  readonly value: Span | undefined;
+  readonly comment: Span | undefined;
 }
 
 /**
- * Parses a line of the robots.txt file and extracts the directive, value, and comment.
- * @param line The line of the robots.txt file to parse.
- * @returns An object containing the parsed directive, value, and comment.
+ * Parses a line of the robots.txt file.
+ * @param lineText The line to parse.
+ * @returns An object containing the parsed directive, separator, value, and comment.
  */
-export function parseLine(line: vscode.TextLine): ParsedLine {
-  const [content, comment] = splitContentAndComment(line);
-  const tokens = splitToken(content, /:/);
+export function parseLine(lineText: vscode.TextLine): ParsedLine {
+  const [content, comment] = splitComment(lineText);
+  const tokens = splitTokens(content, /:/);
   return {
     name: tokens[0],
     separator: tokens[1],
@@ -29,105 +26,72 @@ export function parseLine(line: vscode.TextLine): ParsedLine {
 }
 
 /**
- * Splits a line into content and comment parts based on the presence of a '#' character.
- * @param line The line of text to split.
- * @returns A tuple containing the content token and an optional comment token.
+ * Splits a line into content and comment parts.
+ * @param lineText The line of text to split.
+ * @returns A tuple containing the content span and an optional comment span.
  */
-function splitContentAndComment(line: vscode.TextLine): [Token, Token?] {
-  const { text, range } = line;
-  const offset = text.indexOf("#");
+function splitComment(lineText: vscode.TextLine): [Span, Span?] {
+  const span: Span = { text: lineText.text, range: lineText.range };
+  const offset = span.text.indexOf("#");
   if (offset < 0) {
-    return [{ text, range }];
+    return [span];
   }
 
-  const splitPosition = range.start.translate(0, offset);
-
-  const contentPart = text.substring(0, offset);
-  const contentRange = new vscode.Range(range.start, splitPosition);
-  const contentToken: Token = { text: contentPart, range: contentRange };
-
-  const commentPart = text.substring(offset);
-  const commentRange = new vscode.Range(splitPosition, range.end);
-  const commentToken: Token = { text: commentPart, range: commentRange };
-
-  return [trimToken(contentToken), trimToken(commentToken)];
+  const contentSpan = subspan(span, 0, offset);
+  const commentSpan = subspan(span, offset, span.text.length);
+  return [trimSpan(contentSpan), commentSpan];
 }
 
 /**
- * Splits a token into parts based on a specified separator regex, with an optional limit on the number of parts.
- * @param token The token to split.
- * @param sepRegex The regular expression to use as the separator for splitting the token.
- * @returns An array of tokens resulting from the split operation, with leading and trailing whitespace removed.
+ * Splits a content into parts based on a specified separator regex.
+ * @param content The content to split.
+ * @param separatorRegex The regular expression to use as the separator for splitting the content.
+ * @returns An array of spans resulting from the split operation.
  */
-function splitToken(
-  token: Token,
-  sepRegex: RegExp,
-): [Token] | [Token, Token, Token] {
-  const match = token.text.match(sepRegex);
+function splitTokens(
+  content: Span,
+  separatorRegex: RegExp,
+): [Span] | [Span, Span, Span] {
+  const match = content.text.match(separatorRegex);
   if (!match) {
-    return [trimToken(token)];
+    return [content];
   }
-  const separatorLength = match[0].length;
+
   const separatorOffset = match.index!;
-  const valueOffset = separatorOffset + separatorLength;
+  const valueOffset = separatorOffset + match[0].length;
 
-  const separatorPosition = token.range.start.translate(0, separatorOffset);
-  const valuePosition = separatorPosition.translate(0, separatorLength);
-
-  const name = {
-    text: token.text.substring(0, separatorOffset),
-    range: new vscode.Range(token.range.start, separatorPosition),
-  };
-  const separator = {
-    text: token.text.substring(separatorOffset, valueOffset),
-    range: new vscode.Range(separatorPosition, valuePosition),
-  };
-  const value = {
-    text: token.text.substring(valueOffset),
-    range: new vscode.Range(valuePosition, token.range.end),
-  };
-  return [trimToken(name), separator, trimToken(value)];
+  const name = subspan(content, 0, separatorOffset);
+  const separator = subspan(content, separatorOffset, valueOffset);
+  const value = subspan(content, valueOffset, content.text.length);
+  return [trimSpan(name), separator, trimSpan(value)];
 }
 
 /**
- * Trims leading and trailing whitespace from a token's text and adjusts its range accordingly.
- * @param token The token to trim.
- * @returns A new token with trimmed text and an updated range that reflects the trimmed content.
+ * Splits a span into multiple parts, with a limit on the number of parts.
+ * If the span contains more parts than this limit, the remaining text will be included in the last part.
+ * @param value The span to split.
+ * @param maxParts The maximum number of parts to split into.
+ * @returns An array of spans resulting from the split operation.
  */
-function trimToken(token: Token): Token {
-  const text = token.text.trim();
-  const offset = token.text.indexOf(text);
-  const start = token.range.start.translate(0, offset);
-  const end = start.translate(0, text.length);
-  const range = new vscode.Range(start, end);
-  return { text, range };
-}
-
-/**
- * Splits a token into multiple parts based on a specified separator string, with an optional limit on the number of parts.
- * This function is designed to handle cases where a directive may have multiple parameters separated by spaces.
- * @param value The token to split, which may contain multiple parameters.
- * @param maxParts The maximum number of parts to split into. If the token contains more parts than this limit, the remaining text will be included in the last part.
- * @returns An array of tokens resulting from the split operation, with leading and trailing whitespace removed from each part.
- */
-export function splitTokenWithLimit(value: Token, maxParts: number): Token[] {
-  if (value.text.length === 0) {
+export function splitTokenWithLimit(value: Span, maxParts: number): Span[] {
+  if (isEmptySpan(value)) {
     return [];
   }
 
-  const parts: Token[] = [];
-  let remainingToken = value;
+  const parts: Span[] = [];
+  let remainingSpan = value;
   for (let i = 0; i < maxParts - 1; i++) {
-    const divided = splitToken(remainingToken, /\s+/);
+    const divided = splitTokens(remainingSpan, /\s+/);
     parts.push(divided[0]);
-    if (divided.length === 1) {
+    if (divided[2]) {
+      remainingSpan = divided[2];
+    } else {
       return parts;
     }
-    remainingToken = divided[2];
   }
 
-  if (0 < remainingToken.text.length) {
-    parts.push(remainingToken);
+  if (!isEmptySpan(remainingSpan)) {
+    parts.push(remainingSpan);
   }
   return parts;
 }
