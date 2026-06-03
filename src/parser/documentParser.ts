@@ -1,18 +1,19 @@
 import * as vscode from "vscode";
-import { parseLine, splitTokenWithLimit, Token } from "./lineParser";
+import { parseLine, splitTokenWithLimit } from "./lineParser";
+import { Span, isEmptySpan } from "./span";
 import { DIRECTIVE_INFOS } from "../data/directiveInfo";
 
 export interface AstDirective {
   /** directive type. always lowercase */
   type: string;
   /** directive name */
-  name: Token;
+  name: Span;
   /** separator, usually a colon (:) */
-  separator: Token | undefined;
+  separator: Span | undefined;
   /** directive value tokens */
-  params: Token[];
+  params: Span[];
   /** Comment */
-  comment: Token | undefined;
+  comment: Span | undefined;
 }
 
 export interface AstGroup {
@@ -47,7 +48,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
     const lineText = document.lineAt(lineNo);
     const { name, separator, value, comment } = parseLine(lineText);
 
-    if (name.text.length === 0 && separator === undefined) {
+    if (isEmptySpan(name) && separator === undefined) {
       // empty line or comment-only line, just ignore
       continue;
     }

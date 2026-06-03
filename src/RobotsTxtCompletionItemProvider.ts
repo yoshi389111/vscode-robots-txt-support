@@ -1,103 +1,406 @@
 import * as vscode from "vscode";
 import { CRAWLER_INFOS } from "./data/crawlerInfo";
-import { DIRECTIVE_INFOS } from "./data/directiveInfo";
-import { parseLine } from "./parser/lineParser";
+import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
+import {
+  parseLine,
+  ParsedLine,
+  splitTokenWithLimit,
+} from "./parser/lineParser";
+import { isEmptySpan, Span, subspan } from "./parser/span";
+import { getLogger } from "./utils/logger";
 
 /** Completion item provider for robots.txt */
 export class RobotsTxtCompletionItemProvider
   implements vscode.CompletionItemProvider
 {
-  public provideCompletionItems(
+  private readonly log = getLogger();
+
+  public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
     _token: vscode.CancellationToken,
     _context: vscode.CompletionContext,
-  ): vscode.ProviderResult<vscode.CompletionItem[]> {
-    const lineText = document.lineAt(position.line);
-    const { name, separator, value, comment } = parseLine(lineText);
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    this.log.trace("Providing completion items", document.fileName);
+    try {
+      const parsedLine = parseLine(document.lineAt(position.line));
 
-    const namePart = name.text.toLowerCase();
-
-    // If the line is empty or only contains whitespace, suggest all directives
-    if (
-      name.range.contains(position) ||
-      (name.text.length === 0 && comment === undefined)
-    ) {
-      const inputLength = position.character - name.range.start.character;
-      const inputPart = namePart.substring(0, inputLength);
-      const endPosition = value
-        ? value.range.start
-        : separator
-          ? separator.range.end
-          : name.range.end;
-      const range = new vscode.Range(name.range.start, endPosition);
-      let result: vscode.CompletionItem[] = [];
-      for (const [key, info] of Object.entries(DIRECTIVE_INFOS)) {
-        if (info.hiddenCompletion || !key.startsWith(inputPart)) {
-          continue;
-        }
-        result.push(newCompletionKeyword(`${info.name}: `, range));
+      if (
+        parsedLine.comment &&
+        position.isAfterOrEqual(parsedLine.comment.range.start)
+      ) {
+        // in comment part, no completion
+        return undefined;
       }
-      return result;
-    }
 
-    // Suggest common user agents
-    if (namePart === "user-agent" && value && value.range.contains(position)) {
-      const valuePart = value.text.toLowerCase();
-      const inputLength = position.character - value.range.start.character;
-      const inputPart = valuePart.substring(0, inputLength);
-      let result: vscode.CompletionItem[] = [];
-      for (const [key, info] of Object.entries(CRAWLER_INFOS)) {
-        if (
-          key === valuePart ||
-          !key.startsWith(inputPart) ||
-          info.hiddenCompletion ||
-          (info.prefix && !valuePart.startsWith(info.prefix))
-        ) {
-          continue;
-        }
-        result.push(newCompletionValue(info.name, value.range));
+      if (
+        parsedLine.separator &&
+        position.isEqual(parsedLine.separator.range.start)
+      ) {
+        // in separator part, no completion
+        return undefined;
       }
-      return result;
+
+      if (
+        !parsedLine.separator ||
+        position.isBefore(parsedLine.separator.range.start)
+      ) {
+        // before separator, complete directive name
+        return this.provideCompletionDirectiveName(
+          document,
+          parsedLine,
+          position,
+        );
+      } else {
+        // after separator, complete directive value
+        return this.provideCompletionDirectiveValue(
+          document,
+          parsedLine,
+          position,
+        );
+      }
+    } catch (error) {
+      this.log.error("Error providing completion items:", error);
+      return undefined;
+    } finally {
+      this.log.trace("Finished providing completion items");
     }
-
-    // Suggest common paths for Disallow and Allow directives
-    // if (namePart === "disallow" || namePart === "allow") {
-    //   // TODO:
-    //   return [
-    //     newCompletionValue("/"),
-    //     newCompletionValue("/private/"),
-    //     newCompletionValue("/public/"),
-    //   ];
-    // }
-
-    // If no matching directive is found, return undefined
-    return undefined;
   }
-}
 
-/** Creates a new completion item for a keyword */
-function newCompletionKeyword(
-  label: string,
-  range: vscode.Range,
-): vscode.CompletionItem {
-  const item = new vscode.CompletionItem(
-    label,
-    vscode.CompletionItemKind.Keyword,
-  );
-  item.range = range;
-  return item;
-}
+  private provideCompletionDirectiveName(
+    _document: vscode.TextDocument,
+    parsedLine: ParsedLine,
+    position: vscode.Position,
+  ): vscode.CompletionItem[] {
+    this.log.trace("> Providing completion for directive name", parsedLine);
+    try {
+      const { name, separator, value } = parsedLine;
 
-/** Creates a new completion item for a value */
-function newCompletionValue(
-  label: string,
-  range: vscode.Range,
-): vscode.CompletionItem {
-  const item = new vscode.CompletionItem(
-    label,
-    vscode.CompletionItemKind.Value,
-  );
-  item.range = range;
-  return item;
+      if (!name.range.contains(position) && !isEmptySpan(name)) {
+        // if the position is not in the name part and name part is not empty, no completion
+        return [];
+      }
+
+      const suggestionSegment: Span = name.range.contains(position)
+        ? name
+        : { text: "", range: new vscode.Range(position, position) };
+
+      const inputLength =
+        position.character - suggestionSegment.range.start.character;
+      const lowercaseInputSegment = suggestionSegment.text
+        .substring(0, inputLength)
+        .toLowerCase();
+
+      const targetCompletionRange = value
+        ? new vscode.Range(suggestionSegment.range.start, value.range.start)
+        : separator
+          ? new vscode.Range(suggestionSegment.range.start, separator.range.end)
+          : suggestionSegment.range;
+
+      return Object.entries(DIRECTIVE_INFOS)
+        .filter(([key, _]) => key.startsWith(lowercaseInputSegment))
+        .filter(([_, info]) => !info.hiddenCompletion)
+        .map(([_, info]) =>
+          this.newCompletion(
+            `${info.name}: `,
+            targetCompletionRange,
+            vscode.CompletionItemKind.Keyword,
+          ),
+        );
+    } finally {
+      this.log.trace("< Finished providing completion for directive name");
+    }
+  }
+
+  private async provideCompletionDirectiveValue(
+    document: vscode.TextDocument,
+    parsedLine: ParsedLine,
+    position: vscode.Position,
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    this.log.trace("> Providing completion for directive value");
+
+    try {
+      if (
+        !parsedLine.separator ||
+        parsedLine.separator.range.end.isAfterOrEqual(position)
+      ) {
+        // before separator, no completion
+        return undefined;
+      }
+
+      const directiveName = parsedLine.name.text.toLowerCase();
+      const directiveInfo = DIRECTIVE_INFOS[directiveName];
+      if (!directiveInfo) {
+        // unknown directive, no completion
+        return undefined;
+      }
+
+      const firstParamInfo = directiveInfo.params[0];
+
+      if (!firstParamInfo) {
+        // if directive has no parameter, no completion
+        return undefined;
+      }
+
+      const cursorSpan: Span = {
+        text: "",
+        range: new vscode.Range(position, position),
+      };
+
+      const value = parsedLine.value;
+      if (!value) {
+        return this.provideCompletionParameter(
+          document,
+          cursorSpan,
+          firstParamInfo,
+          position,
+        );
+      }
+
+      const paramSpans = splitTokenWithLimit(
+        value,
+        directiveInfo.params.length,
+      );
+      if (paramSpans.length === 0) {
+        // if value is empty but directive has parameters, suggest the first parameter
+        return this.provideCompletionParameter(
+          document,
+          cursorSpan,
+          firstParamInfo,
+          position,
+        );
+      }
+
+      if (
+        paramSpans.length < directiveInfo.params.length &&
+        position.isAfter(paramSpans[paramSpans.length - 1]!.range.end)
+      ) {
+        // if not all parameters are present, suggest the next parameter
+        const nextParamInfo = directiveInfo.params[paramSpans.length]!;
+        return this.provideCompletionParameter(
+          document,
+          cursorSpan,
+          nextParamInfo,
+          position,
+        );
+      }
+
+      for (const [index, paramSpan] of paramSpans.entries()) {
+        const paramInfo = directiveInfo.params[index]!;
+        if (!paramInfo) {
+          break;
+        }
+        if (paramSpan.range.contains(position)) {
+          return this.provideCompletionParameter(
+            document,
+            paramSpan,
+            paramInfo,
+            position,
+          );
+        }
+      }
+
+      return undefined;
+    } finally {
+      this.log.trace("< Finished providing completion for directive value");
+    }
+  }
+
+  private async provideCompletionParameter(
+    document: vscode.TextDocument,
+    paramSpan: Span,
+    parameterInfo: ParameterInfo,
+    position: vscode.Position,
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    this.log.trace(">> Providing completion for parameter", parameterInfo);
+    try {
+      switch (parameterInfo.validationType) {
+        case "no-check":
+        case "number":
+        case "query-params":
+          return undefined;
+
+        case "product-token":
+          return this.provideCompletionProductToken(paramSpan, position);
+
+        case "path-pattern":
+          return this.provideCompletionPath(document, paramSpan, position);
+
+        case "url":
+          return this.provideCompletionUrl(document, paramSpan, position);
+      }
+    } finally {
+      this.log.trace("<< Finished providing completion for parameter");
+    }
+  }
+
+  private provideCompletionProductToken(
+    value: Span,
+    position: vscode.Position,
+  ): vscode.CompletionItem[] {
+    this.log.trace(">>> Providing completion for product token", value);
+    try {
+      const inputLength = position.character - value.range.start.character;
+      const inputPart = value.text.substring(0, inputLength).toLowerCase();
+      return Object.entries(CRAWLER_INFOS)
+        .filter(([key, _]) => key.startsWith(inputPart))
+        .filter(([_, info]) => !info.hiddenCompletion)
+        .filter(([key, _]) => key !== inputPart)
+        .filter(
+          ([_, info]) => !info.prefix || inputPart.startsWith(info.prefix),
+        )
+        .map(([_, info]) =>
+          this.newCompletion(
+            info.name,
+            value.range,
+            vscode.CompletionItemKind.Value,
+          ),
+        );
+    } finally {
+      this.log.trace("<<< Finished providing completion for product token");
+    }
+  }
+
+  private async provideCompletionPath(
+    document: vscode.TextDocument,
+    paramSpan: Span,
+    position: vscode.Position,
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    this.log.trace(">>> Providing completion for path pattern", paramSpan);
+    try {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+      if (!workspaceFolder) {
+        return undefined;
+      }
+
+      if (!paramSpan.range.end.isEqual(position)) {
+        return undefined;
+      }
+
+      if (paramSpan.text.includes("*") || paramSpan.text.includes("$")) {
+        return undefined;
+      }
+
+      const basePath = paramSpan.text.startsWith("/")
+        ? paramSpan.text.substring(1)
+        : paramSpan.text;
+
+      const basePathDir = basePath.endsWith("/")
+        ? basePath
+        : basePath.substring(0, basePath.lastIndexOf("/") + 1);
+
+      const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
+
+      const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
+
+      const entries = await this.readDirectory(baseDir);
+      const result: vscode.CompletionItem[] = [];
+      for (const [name, type] of entries) {
+        if (!name.startsWith(prefix)) {
+          continue;
+        }
+        if (type === vscode.FileType.Directory) {
+          const completionItem = this.newCompletion(
+            `/${basePathDir}${name}/`,
+            paramSpan.range,
+            vscode.CompletionItemKind.Folder,
+          );
+          result.push(completionItem);
+        } else if (type === vscode.FileType.File) {
+          const completionItem = this.newCompletion(
+            `/${basePathDir}${name}`,
+            paramSpan.range,
+            vscode.CompletionItemKind.File,
+          );
+          result.push(completionItem);
+        }
+      }
+      return result;
+    } finally {
+      this.log.trace("<<< Finished providing completion for path pattern");
+    }
+  }
+
+  private async provideCompletionUrl(
+    document: vscode.TextDocument,
+    paramSpan: Span,
+    position: vscode.Position,
+  ): Promise<vscode.CompletionItem[] | undefined> {
+    this.log.trace(">>> Providing completion for URL", paramSpan);
+    try {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+      if (!workspaceFolder) {
+        return undefined;
+      }
+
+      if (!paramSpan.range.end.isEqual(position)) {
+        return undefined;
+      }
+
+      const match = paramSpan.text.match(/^https?:\/\/[^/]+\//);
+      if (!match) {
+        // if the value does not look like a URL with path, no completion
+        return undefined;
+      }
+      const baseSpan = subspan(
+        paramSpan,
+        match[0].length,
+        paramSpan.text.length,
+      );
+      const basePath = baseSpan.text;
+
+      const basePathDir = basePath.endsWith("/")
+        ? basePath
+        : basePath.substring(0, basePath.lastIndexOf("/") + 1);
+
+      const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
+
+      const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
+
+      const entries = await this.readDirectory(baseDir);
+      const result: vscode.CompletionItem[] = [];
+      for (const [name, type] of entries) {
+        if (!name.startsWith(prefix)) {
+          continue;
+        }
+        const resultPath =
+          type === vscode.FileType.Directory
+            ? `${basePathDir}${name}/`
+            : `${basePathDir}${name}`;
+        const completionItem = this.newCompletion(
+          resultPath,
+          baseSpan.range,
+          vscode.CompletionItemKind.Value,
+        );
+        result.push(completionItem);
+      }
+      return result;
+    } finally {
+      this.log.trace("<<< Finished providing completion for URL");
+    }
+  }
+
+  private async readDirectory(
+    uri: vscode.Uri,
+  ): Promise<[string, vscode.FileType][]> {
+    try {
+      const entries = await vscode.workspace.fs.readDirectory(uri);
+      return entries;
+    } catch (error) {
+      // if error occurs (e.g. file not found), return empty list to avoid breaking completion
+      this.log.debug("Error reading directory for completion", error);
+      return [];
+    }
+  }
+
+  /** Creates a new completion item for specific kind */
+  private newCompletion(
+    label: string,
+    range: vscode.Range,
+    itemKind: vscode.CompletionItemKind,
+  ): vscode.CompletionItem {
+    const item = new vscode.CompletionItem(label, itemKind);
+    item.range = range;
+    return item;
+  }
 }
