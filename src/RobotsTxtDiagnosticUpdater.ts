@@ -209,6 +209,7 @@ export class RobotsTxtDiagnosticUpdater {
       collection.set(document.uri, this.diagnostics);
     } catch (error) {
       this.log.error("Error updating diagnostics for document", error);
+      collection.set(document.uri, []);
     } finally {
       this.log.trace("Finished updating diagnostics for document");
     }
