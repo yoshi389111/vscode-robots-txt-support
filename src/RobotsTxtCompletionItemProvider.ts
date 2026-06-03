@@ -291,10 +291,7 @@ export class RobotsTxtCompletionItemProvider
 
       const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
 
-      const baseDir = vscode.Uri.joinPath(
-        workspaceFolder.uri,
-        basePathDir,
-      );
+      const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
 
       const entries = await this.readDirectory(baseDir);
       const result: vscode.CompletionItem[] = [];
@@ -358,12 +355,9 @@ export class RobotsTxtCompletionItemProvider
 
       const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
 
-      const baseDir = vscode.Uri.joinPath(
-        workspaceFolder.uri,
-        basePathDir,
-      ).fsPath;
+      const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
 
-      const entries = await this.readDirectory(vscode.Uri.file(baseDir));
+      const entries = await this.readDirectory(baseDir);
       const result: vscode.CompletionItem[] = [];
       for (const [name, type] of entries) {
         if (!name.startsWith(prefix)) {
