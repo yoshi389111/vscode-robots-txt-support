@@ -294,9 +294,9 @@ export class RobotsTxtCompletionItemProvider
       const baseDir = vscode.Uri.joinPath(
         workspaceFolder.uri,
         basePathDir,
-      ).fsPath;
+      );
 
-      const entries = await this.readDirectory(vscode.Uri.file(baseDir));
+      const entries = await this.readDirectory(baseDir);
       const result: vscode.CompletionItem[] = [];
       for (const [name, type] of entries) {
         if (!name.startsWith(prefix)) {
