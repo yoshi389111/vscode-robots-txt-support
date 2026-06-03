@@ -34,7 +34,7 @@ function splitComment(lineText: vscode.TextLine): [Span, Span?] {
   const span: Span = { text: lineText.text, range: lineText.range };
   const offset = span.text.indexOf("#");
   if (offset < 0) {
-    return [span];
+    return [trimSpan(span)];
   }
 
   const contentSpan = subspan(span, 0, offset);
