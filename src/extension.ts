@@ -18,7 +18,7 @@ export function deactivate() {}
  * Initializes the extension by registering all providers and listeners.
  * To push all at once with `activate`, Disposable is returned sequentially.
  * @param context The extension context provided by VS Code
- * @returns A generator yielding disposables for all registered providers and listeners
+ * @returns An iterable yielding disposables for all registered providers and listeners
  */
 function* initializeExtension(
   context: vscode.ExtensionContext,
@@ -79,10 +79,12 @@ function* initializeExtension(
   yield vscode.workspace.onDidOpenTextDocument(diagnosticUpdate);
   // Listen to document saves and update diagnostics
   yield vscode.workspace.onDidSaveTextDocument(diagnosticUpdate);
+  // Listen to document closures and update diagnostics
+  yield vscode.workspace.onDidCloseTextDocument(diagnosticUpdate);
   // Listen to document changes and update diagnostics
-  yield vscode.workspace.onDidChangeTextDocument((event) =>
-    diagnosticUpdate(event.document),
-  );
+  yield vscode.workspace.onDidChangeTextDocument((event) => {
+    diagnosticUpdate(event.document);
+  });
   // Listen to active editor changes and update diagnostics
   yield vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor) {
@@ -90,16 +92,12 @@ function* initializeExtension(
     }
   });
 
-  // Listen to document closures and update diagnostics
-  yield vscode.workspace.onDidCloseTextDocument((document) => {
-    diagnostics.delete(document.uri);
-  });
-  // Listen to file deletions and update diagnostics
+  // Listen to file deletions and delete diagnostics
   yield vscode.workspace.onDidDeleteFiles((event) => {
     event.files.forEach((uri) => diagnostics.delete(uri));
   });
-  // Listen to file renames and update diagnostics
+  // Listen to file renames and delete diagnostics for old URIs
   yield vscode.workspace.onDidRenameFiles((event) => {
-    event.files.forEach((file) => diagnostics.delete(file.oldUri));
+    event.files.forEach((files) => diagnostics.delete(files.oldUri));
   });
 }
