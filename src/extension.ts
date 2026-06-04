@@ -3,6 +3,7 @@ import { RobotsTxtCompletionItemProvider } from "./RobotsTxtCompletionItemProvid
 import { RobotsTxtFoldingRangeProvider } from "./RobotsTxtFoldingRangeProvider";
 import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider";
 import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
+import { RobotsTxtCodeActionProvider } from "./RobotsTxtCodeActionProvider";
 import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
@@ -52,6 +53,12 @@ function* initializeExtension(
   yield vscode.languages.registerHoverProvider(
     constants.LANGUAGE_ID,
     new RobotsTxtHoverProvider(),
+  );
+
+  // Register the code action provider
+  yield vscode.languages.registerCodeActionsProvider(
+    constants.LANGUAGE_ID,
+    new RobotsTxtCodeActionProvider(),
   );
 
   // Register the diagnostic collection updater
