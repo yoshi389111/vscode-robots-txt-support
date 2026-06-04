@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { parseLine } from "./parser/lineParser";
 import * as constants from "./data/constants";
-import { DIRECTIVE_INFOS } from "./data/directiveInfo";
-import { CRAWLER_INFOS, CrawlerInfo } from "./data/crawlerInfo";
+import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
+import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 import { getLogger } from "./utils/logger";
 
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
@@ -24,7 +24,7 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
         return null;
       }
 
-      const directive = DIRECTIVE_INFOS[directiveKey];
+      const directive = DIRECTIVE_LOOKUP[directiveKey];
       if (!directive) {
         // unknown directive, just ignore
         return null;
@@ -95,13 +95,13 @@ function getCrawlerInfo(
     return undefined;
   }
 
-  const crawlerInfo = CRAWLER_INFOS[crawlerKey];
+  const crawlerInfo = CRAWLER_LOOKUP[crawlerKey];
   if (!crawlerInfo || crawlerInfo.hiddenHover) {
     return undefined;
   }
 
   const baseCrawlerInfo = crawlerInfo.inheritsFromKey
-    ? CRAWLER_INFOS[crawlerInfo.inheritsFromKey]
+    ? CRAWLER_LOOKUP[crawlerInfo.inheritsFromKey]
     : undefined;
 
   if (!baseCrawlerInfo) {

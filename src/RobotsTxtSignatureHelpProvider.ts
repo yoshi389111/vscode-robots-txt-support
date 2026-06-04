@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { parseLine, splitTokenWithLimit } from "./parser/lineParser";
 import { Span } from "./parser/span";
-import { DIRECTIVE_INFOS, DirectiveInfo } from "./data/directiveInfo";
+import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { getLogger } from "./utils/logger";
 
 /**
@@ -23,7 +23,7 @@ export class RobotsTxtSignatureHelpProvider
       const { name, value } = parseLine(document.lineAt(position.line));
 
       const directiveType = name.text.toLowerCase();
-      const directiveInfo = DIRECTIVE_INFOS[directiveType];
+      const directiveInfo = DIRECTIVE_LOOKUP[directiveType];
       if (!directiveInfo) {
         // unknown directive, just ignore
         return undefined;

@@ -26,7 +26,7 @@ export interface CrawlerInfo {
  * This is not exhaustive, but includes some of the most common ones.
  * The keys are lowercased for easier matching.
  */
-export const CRAWLER_INFOS: Record<string, CrawlerInfo> = {
+export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
   "*": {
     name: "*",
     description: "All user-agents not explicitly listed.",

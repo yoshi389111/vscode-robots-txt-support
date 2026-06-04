@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { CRAWLER_INFOS } from "./data/crawlerInfo";
-import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
+import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
+import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import {
   parseLine,
   ParsedLine,
@@ -53,7 +53,7 @@ export class RobotsTxtCompletionItemProvider
         );
       } else {
         // after separator, complete directive value
-        return this.provideCompletionDirectiveValue(
+        return await this.provideCompletionDirectiveValue(
           document,
           parsedLine,
           position,
@@ -97,7 +97,7 @@ export class RobotsTxtCompletionItemProvider
           ? new vscode.Range(suggestionSegment.range.start, separator.range.end)
           : suggestionSegment.range;
 
-      return Object.entries(DIRECTIVE_INFOS)
+      return Object.entries(DIRECTIVE_LOOKUP)
         .filter(([key, _]) => key.startsWith(lowercaseInputSegment))
         .filter(([_, info]) => !info.hiddenCompletion)
         .map(([_, info]) =>
@@ -129,7 +129,7 @@ export class RobotsTxtCompletionItemProvider
       }
 
       const directiveName = parsedLine.name.text.toLowerCase();
-      const directiveInfo = DIRECTIVE_INFOS[directiveName];
+      const directiveInfo = DIRECTIVE_LOOKUP[directiveName];
       if (!directiveInfo) {
         // unknown directive, no completion
         return undefined;
@@ -149,7 +149,7 @@ export class RobotsTxtCompletionItemProvider
 
       const value = parsedLine.value;
       if (!value) {
-        return this.provideCompletionParameter(
+        return await this.provideCompletionParameter(
           document,
           cursorSpan,
           firstParamInfo,
@@ -163,7 +163,7 @@ export class RobotsTxtCompletionItemProvider
       );
       if (paramSpans.length === 0) {
         // if value is empty but directive has parameters, suggest the first parameter
-        return this.provideCompletionParameter(
+        return await this.provideCompletionParameter(
           document,
           cursorSpan,
           firstParamInfo,
@@ -177,7 +177,7 @@ export class RobotsTxtCompletionItemProvider
       ) {
         // if not all parameters are present, suggest the next parameter
         const nextParamInfo = directiveInfo.params[paramSpans.length]!;
-        return this.provideCompletionParameter(
+        return await this.provideCompletionParameter(
           document,
           cursorSpan,
           nextParamInfo,
@@ -191,7 +191,7 @@ export class RobotsTxtCompletionItemProvider
           break;
         }
         if (paramSpan.range.contains(position)) {
-          return this.provideCompletionParameter(
+          return await this.provideCompletionParameter(
             document,
             paramSpan,
             paramInfo,
@@ -224,10 +224,14 @@ export class RobotsTxtCompletionItemProvider
           return this.provideCompletionProductToken(paramSpan, position);
 
         case "path-pattern":
-          return this.provideCompletionPath(document, paramSpan, position);
+          return await this.provideCompletionPath(
+            document,
+            paramSpan,
+            position,
+          );
 
         case "url":
-          return this.provideCompletionUrl(document, paramSpan, position);
+          return await this.provideCompletionUrl(document, paramSpan, position);
       }
     } finally {
       this.log.trace("<< Finished providing completion for parameter");
@@ -242,7 +246,7 @@ export class RobotsTxtCompletionItemProvider
     try {
       const inputLength = position.character - value.range.start.character;
       const inputPart = value.text.substring(0, inputLength).toLowerCase();
-      return Object.entries(CRAWLER_INFOS)
+      return Object.entries(CRAWLER_LOOKUP)
         .filter(([key, _]) => key.startsWith(inputPart))
         .filter(([_, info]) => !info.hiddenCompletion)
         .filter(([key, _]) => key !== inputPart)
@@ -285,14 +289,11 @@ export class RobotsTxtCompletionItemProvider
         ? paramSpan.text.substring(1)
         : paramSpan.text;
 
-      const basePathDir = basePath.endsWith("/")
-        ? basePath
-        : basePath.substring(0, basePath.lastIndexOf("/") + 1);
-
-      const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
+      const basePathDirLength = basePath.lastIndexOf("/") + 1;
+      const basePathDir = basePath.substring(0, basePathDirLength);
+      const prefix = basePath.substring(basePathDirLength);
 
       const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
-
       const entries = await this.readDirectory(baseDir);
       const result: vscode.CompletionItem[] = [];
       for (const [name, type] of entries) {
@@ -349,11 +350,9 @@ export class RobotsTxtCompletionItemProvider
       );
       const basePath = baseSpan.text;
 
-      const basePathDir = basePath.endsWith("/")
-        ? basePath
-        : basePath.substring(0, basePath.lastIndexOf("/") + 1);
-
-      const prefix = basePath.substring(basePath.lastIndexOf("/") + 1);
+      const basePathDirLength = basePath.lastIndexOf("/") + 1;
+      const basePathDir = basePath.substring(0, basePathDirLength);
+      const prefix = basePath.substring(basePathDirLength);
 
       const baseDir = vscode.Uri.joinPath(workspaceFolder.uri, basePathDir);
 
@@ -384,8 +383,7 @@ export class RobotsTxtCompletionItemProvider
     uri: vscode.Uri,
   ): Promise<[string, vscode.FileType][]> {
     try {
-      const entries = await vscode.workspace.fs.readDirectory(uri);
-      return entries;
+      return await vscode.workspace.fs.readDirectory(uri);
     } catch (error) {
       // if error occurs (e.g. file not found), return empty list to avoid breaking completion
       this.log.debug("Error reading directory for completion", error);
