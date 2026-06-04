@@ -3,7 +3,7 @@ import * as path from "path";
 import { parseRobotsTxt, AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
 import { getLogger } from "./utils/logger";
-import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
+import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
 import * as constants from "./data/constants";
 
@@ -143,7 +143,7 @@ export class RobotsTxtDiagnosticUpdater {
    */
   private checkDirective(astDirective: AstDirective): void {
     const { type, name, separator, params } = astDirective;
-    const directiveInfo = DIRECTIVE_INFOS[type];
+    const directiveInfo = DIRECTIVE_LOOKUP[type];
 
     if (!REGEX_DIRECTIVE_NAME.test(type)) {
       // The directive name is invalid

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { parseLine, splitTokenWithLimit } from "./lineParser";
 import { Span, isEmptySpan } from "./span";
-import { DIRECTIVE_INFOS } from "../data/directiveInfo";
+import { DIRECTIVE_LOOKUP } from "../data/directiveInfo";
 
 export interface AstDirective {
   /** directive type. always lowercase */
@@ -54,7 +54,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
     }
 
     const type = name.text.toLowerCase();
-    const directiveInfo = DIRECTIVE_INFOS[type];
+    const directiveInfo = DIRECTIVE_LOOKUP[type];
 
     const maxParts = directiveInfo ? directiveInfo.params.length : 1;
     const params = value ? splitTokenWithLimit(value, maxParts) : [];

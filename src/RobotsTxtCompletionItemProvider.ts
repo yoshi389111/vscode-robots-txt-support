@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { CRAWLER_INFOS } from "./data/crawlerInfo";
-import { DIRECTIVE_INFOS, ParameterInfo } from "./data/directiveInfo";
+import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
+import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import {
   parseLine,
   ParsedLine,
@@ -97,7 +97,7 @@ export class RobotsTxtCompletionItemProvider
           ? new vscode.Range(suggestionSegment.range.start, separator.range.end)
           : suggestionSegment.range;
 
-      return Object.entries(DIRECTIVE_INFOS)
+      return Object.entries(DIRECTIVE_LOOKUP)
         .filter(([key, _]) => key.startsWith(lowercaseInputSegment))
         .filter(([_, info]) => !info.hiddenCompletion)
         .map(([_, info]) =>
@@ -129,7 +129,7 @@ export class RobotsTxtCompletionItemProvider
       }
 
       const directiveName = parsedLine.name.text.toLowerCase();
-      const directiveInfo = DIRECTIVE_INFOS[directiveName];
+      const directiveInfo = DIRECTIVE_LOOKUP[directiveName];
       if (!directiveInfo) {
         // unknown directive, no completion
         return undefined;
@@ -242,7 +242,7 @@ export class RobotsTxtCompletionItemProvider
     try {
       const inputLength = position.character - value.range.start.character;
       const inputPart = value.text.substring(0, inputLength).toLowerCase();
-      return Object.entries(CRAWLER_INFOS)
+      return Object.entries(CRAWLER_LOOKUP)
         .filter(([key, _]) => key.startsWith(inputPart))
         .filter(([_, info]) => !info.hiddenCompletion)
         .filter(([key, _]) => key !== inputPart)
