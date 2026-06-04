@@ -115,10 +115,9 @@ export class RobotsTxtCodelensProvider
       return crawlerInfo;
     }
     const baseCrawlerInfo = CRAWLER_LOOKUP[crawlerInfo.inheritsFromKey];
-    const mergedCrawlerInfo = {
-      ...baseCrawlerInfo,
-      ...crawlerInfo,
-    };
-    return mergedCrawlerInfo;
+    if (!baseCrawlerInfo) {
+      return crawlerInfo;
+    }
+    return { ...baseCrawlerInfo, ...crawlerInfo };
   }
 }
