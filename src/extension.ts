@@ -5,6 +5,7 @@ import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider
 import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { RobotsTxtCodeActionProvider } from "./RobotsTxtCodeActionProvider";
 import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
+import { RobotsTxtCodelensProvider } from "./RobotsTxtCodelensProvider";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
@@ -60,6 +61,13 @@ function* initializeExtension(
     constants.LANGUAGE_ID,
     new RobotsTxtCodeActionProvider(),
     RobotsTxtCodeActionProvider.metadata,
+  );
+
+  const codelensProvider = new RobotsTxtCodelensProvider();
+  yield codelensProvider;
+  yield vscode.languages.registerCodeLensProvider(
+    constants.LANGUAGE_ID,
+    codelensProvider,
   );
 
   // Register the diagnostic collection updater
