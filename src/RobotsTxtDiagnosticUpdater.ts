@@ -155,10 +155,7 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (separator === undefined) {
       // The directive is missing a colon
-      this.addDiagnostic(
-        DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON,
-        new vscode.Range(name.range.end, name.range.end),
-      );
+      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON, name.range);
       return;
     }
 
