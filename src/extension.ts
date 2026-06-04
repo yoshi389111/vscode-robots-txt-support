@@ -63,9 +63,11 @@ function* initializeExtension(
     RobotsTxtCodeActionProvider.metadata,
   );
 
+  const codelensProvider = new RobotsTxtCodelensProvider();
+  yield codelensProvider;
   yield vscode.languages.registerCodeLensProvider(
     constants.LANGUAGE_ID,
-    new RobotsTxtCodelensProvider(),
+    codelensProvider,
   );
 
   // Register the diagnostic collection updater
