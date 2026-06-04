@@ -80,10 +80,15 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Error,
     message: "'$' is only allowed at the end of the pattern.",
   },
-  PATH_PATTERN_INVALID_URLENCODE: {
+  PATH_PATTERN_INVALID_URL_CHARACTER: {
     code: "RBT111",
     severity: vscode.DiagnosticSeverity.Error,
     message: "Invalid URL characters.",
+  },
+  PATH_PATTERN_INVALID_URL_ENCODING: {
+    code: "RBT112",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid URL encoding.",
   },
 
   URL_INVALID: {

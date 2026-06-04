@@ -25,6 +25,9 @@ const REGEX_NUMERIC = /^\d+$/;
 /** Regular expression to validate numeric values with leading zeros. */
 const REGEX_LEADING_ZEROS = /^0+\d+$/;
 
+/** Regular expression to validate URL encoding. */
+const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
+
 /** Recommended maximum file size. (500 KiB) */
 const FILE_SIZE_LIMIT = 500 * 1024;
 
@@ -232,7 +235,13 @@ export class RobotsTxtDiagnosticUpdater {
     if (!REGEX_ENCODED_PATH.test(paramToken.text)) {
       // The path pattern contains unencoded characters that should be URL-encoded
       this.addDiagnostic(
-        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URLENCODE,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER,
+        paramToken.range,
+      );
+    } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
+      // The path pattern contains invalid URL encoding
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING,
         paramToken.range,
       );
     }
