@@ -101,9 +101,10 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction {
+    const REGEX_LEADING_ZEROS = /^0+(?!$)/;
     const normalizedString = document
       .getText(diagnostic.range)
-      .replace(/^0+(?!$)/, "");
+      .replace(REGEX_LEADING_ZEROS, "");
     const fix = new vscode.CodeAction(
       "Remove leading zeros",
       vscode.CodeActionKind.QuickFix,
@@ -167,9 +168,10 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction {
+    const REGEX_DOUBLE_ASTERISK = /\*\*+/g;
     const cleanedString = document
       .getText(diagnostic.range)
-      .replace(/\*\*+/g, "*");
+      .replace(REGEX_DOUBLE_ASTERISK, "*");
 
     const fix = new vscode.CodeAction(
       "Replace '**' with '*'",
@@ -192,9 +194,10 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction {
+    const REGEX_TRAILING_ASTERISKS = /\*+$/;
     const cleanedString = document
       .getText(diagnostic.range)
-      .replace(/\*+$/, "");
+      .replace(REGEX_TRAILING_ASTERISKS, "");
 
     const fix = new vscode.CodeAction(
       "Remove unnecessary '*'",
@@ -217,9 +220,10 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction {
+    const REGEX_DOLLAR_SIGN_NOT_AT_END = /\$(?=.)/g;
     const cleanedString = document
       .getText(diagnostic.range)
-      .replace(/\$(?=.)/g, "%24");
+      .replace(REGEX_DOLLAR_SIGN_NOT_AT_END, "%24");
 
     const fix = new vscode.CodeAction(
       "Replace '$' with '%24'",
