@@ -91,6 +91,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOLLAR.code:
         return [this.createPathPatternDollarFix(document, diagnostic)];
 
+      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.code:
+        return this.createPathPatternInvalidUrlEncodingFix(
+          document,
+          diagnostic,
+        );
+
       default:
         return [];
     }
@@ -231,7 +237,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       .replace(REGEX_DOLLAR_SIGN_NOT_AT_END, "%24");
 
     const fix = new vscode.CodeAction(
-      "Replace '$' with '%24'",
+      "Encode invalid '$' characters",
       vscode.CodeActionKind.QuickFix,
     );
     fix.edit = new vscode.WorkspaceEdit();
@@ -239,6 +245,40 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     fix.diagnostics = [diagnostic];
     fix.isPreferred = true;
     return fix;
+  }
+
+  private createPathPatternInvalidUrlEncodingFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const REGEX_INVALID_URL_ENCODING = /%(?![0-9A-Fa-f]{2})/g;
+
+    const targetString = document.getText(diagnostic.range);
+
+    const replacedString = targetString.replace(
+      REGEX_INVALID_URL_ENCODING,
+      "%25",
+    );
+    const fixReplace = new vscode.CodeAction(
+      "Encode invalid '%' characters",
+      vscode.CodeActionKind.QuickFix,
+    );
+    fixReplace.edit = new vscode.WorkspaceEdit();
+    fixReplace.edit.replace(document.uri, diagnostic.range, replacedString);
+    fixReplace.diagnostics = [diagnostic];
+    fixReplace.isPreferred = true;
+
+    const removedString = targetString.replace(REGEX_INVALID_URL_ENCODING, "");
+    const fixRemove = new vscode.CodeAction(
+      "Remove invalid '%' characters",
+      vscode.CodeActionKind.QuickFix,
+    );
+    fixRemove.edit = new vscode.WorkspaceEdit();
+    fixRemove.edit.replace(document.uri, diagnostic.range, removedString);
+    fixRemove.diagnostics = [diagnostic];
+    fixRemove.isPreferred = true;
+
+    return [fixReplace, fixRemove];
   }
 
   /**
