@@ -5,6 +5,11 @@ import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   private readonly log = getLogger();
 
+  /** Metadata for the code action provider. */
+  public static readonly metadata: vscode.CodeActionProviderMetadata = {
+    providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+  };
+
   provideCodeActions(
     document: vscode.TextDocument,
     _range: vscode.Range,
@@ -94,7 +99,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to remove leading zeros from a numeric value.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createLeadingZerosRemovalFix(
@@ -119,7 +124,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to insert a missing colon in a directive.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createMissingColonFix(
@@ -140,7 +145,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to insert a leading slash in a path pattern.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createPathPatternNotStartSlashFix(
@@ -161,7 +166,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to replace double asterisks with a single asterisk in a path pattern.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createPathPatternDoubleAsteriskFix(
@@ -187,7 +192,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to remove unnecessary wildcards at the end of a path pattern.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createPathPatternUnnecessaryWildcardFix(
@@ -213,7 +218,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Creates a code action to remove or encode the '$' character in a path pattern.
    * @param document The text document containing the diagnostic.
-   * @param diagnostic The diagnostic indicating.
+   * @param diagnostic The diagnostic indicating the issue.
    * @returns A code action.
    */
   private createPathPatternDollarFix(

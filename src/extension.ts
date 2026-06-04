@@ -59,6 +59,7 @@ function* initializeExtension(
   yield vscode.languages.registerCodeActionsProvider(
     constants.LANGUAGE_ID,
     new RobotsTxtCodeActionProvider(),
+    RobotsTxtCodeActionProvider.metadata,
   );
 
   // Register the diagnostic collection updater
