@@ -10,7 +10,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
   };
 
-  provideCodeActions(
+  public provideCodeActions(
     document: vscode.TextDocument,
     _range: vscode.Range,
     context: vscode.CodeActionContext,
