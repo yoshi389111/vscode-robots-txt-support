@@ -355,4 +355,4 @@ export const DIRECTIVE_LOOKUP: Record<string, DirectiveInfo> = {
     isDeprecated: true,
     scope: "global",
   },
-};
+} as const;
