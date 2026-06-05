@@ -18,6 +18,16 @@ export interface CrawlerInfo {
   hiddenCompletion: boolean;
   /** WIP: List of fallback user agents for the crawler. */
   fallbackUserAgents?: string[];
+  /** Indicates the support level for the `Allow` directive. */
+  supportsAllow: "supported" | "ignored" | "unknown";
+  /** Indicates the support level for the `Crawl-Delay` directive. */
+  supportsCrawlDelay: "supported" | "ignored" | "unknown";
+  /** Indicates the support level for the `Sitemap` directive. */
+  supportsSitemap: "supported" | "ignored" | "unknown";
+  /** Indicates the support level for the `Clean-Param` directive. */
+  supportsCleanParam: "supported" | "ignored" | "unknown";
+  /** Indicates the support level for wildcard user agents. */
+  wildcardUserAgentSupport: "supported" | "ignored" | "unknown";
 }
 
 // ref. <https://github.com/monperrus/crawler-user-agents/blob/master/crawler-user-agents.json>
@@ -26,12 +36,17 @@ export interface CrawlerInfo {
  * This is not exhaustive, but includes some of the most common ones.
  * The keys are lowercased for easier matching.
  */
-export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
+export const CRAWLER_LOOKUP: Readonly<Record<string, CrawlerInfo>> = {
   "*": {
     name: "*",
     description: "All user-agents not explicitly listed.",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "unknown",
+    wildcardUserAgentSupport: "supported",
   },
 
   /* Google */
@@ -41,6 +56,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.google.com/bot.html",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "googlebot-image": {
     name: "Googlebot-Image",
@@ -50,6 +70,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "googlebot-video": {
     name: "Googlebot-Video",
@@ -59,6 +84,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "googlebot-news": {
     name: "Googlebot-News",
@@ -68,6 +98,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "storebot-google": {
     name: "Storebot-Google",
@@ -75,12 +110,22 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "google-": {
     name: "Google-",
     description: "Placeholder entry for Google-* user agents.",
     hiddenHover: true,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "unknown",
+    wildcardUserAgentSupport: "supported",
   },
   "google-inspectiontool": {
     name: "Google-InspectionTool",
@@ -90,6 +135,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "google-cloudvertexbot": {
     name: "Google-CloudVertexBot",
@@ -99,6 +149,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "google-extended": {
     name: "Google-Extended",
@@ -107,6 +162,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   googleother: {
     name: "GoogleOther",
@@ -114,6 +174,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "googleother-image": {
     name: "GoogleOther-Image",
@@ -123,6 +188,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googleother"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "googleother-video": {
     name: "GoogleOther-Video",
@@ -132,6 +202,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googleother"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   "apis-google": {
     name: "APIs-Google",
@@ -140,6 +215,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "ignored",
   },
   "adsbot-google-mobile": {
     name: "AdsBot-Google-Mobile",
@@ -148,6 +228,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "ignored",
   },
   "adsbot-google": {
     name: "AdsBot-Google",
@@ -156,6 +241,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "ignored",
   },
   "mediapartners-google": {
     name: "Mediapartners-Google",
@@ -164,6 +254,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "googlebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "ignored",
   },
 
   /* Microsoft */
@@ -173,6 +268,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.bing.com/bingbot.htm",
     hiddenCompletion: false,
     hiddenHover: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   adidxbot: {
     name: "AdIdxBot",
@@ -180,6 +280,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "bingbot",
     hiddenCompletion: false,
     hiddenHover: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   microsoftpreview: {
     name: "MicrosoftPreview",
@@ -187,6 +292,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "bingbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   bingvideopreview: {
     name: "BingVideoPreview",
@@ -194,6 +304,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "bingbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Apple */
@@ -204,6 +319,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "applebot-extended": {
     name: "Applebot-Extended",
@@ -213,6 +333,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     hiddenHover: false,
     hiddenCompletion: false,
     fallbackUserAgents: ["applebot", "googlebot"],
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Yandex */
@@ -222,7 +347,13 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://yandex.com/bots",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "supported",
+    supportsCleanParam: "supported",
+    wildcardUserAgentSupport: "supported",
   },
+  // TODO
 
   /* Baidu */
   baiduspider: {
@@ -231,6 +362,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.baidu.com/search/spider.htm",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "baiduspider-image": {
     name: "Baiduspider-Image",
@@ -239,6 +375,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "baiduspider",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "baiduspider-video": {
     name: "Baiduspider-Video",
@@ -247,6 +388,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "baiduspider",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Yahoo */
@@ -256,6 +402,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://help.yahoo.com/help/us/ysearch/slurp",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
 
   /* DuckDuckGo */
@@ -265,6 +416,23 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://duckduckgo.com/duckduckbot.html",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
+  },
+  duckassistbot: {
+    name: "DuckAssistBot",
+    description: "DuckDuckGo's crawler for AI training.",
+    url: "https://duckduckgo.com/duckassistbot.html",
+    hiddenHover: false,
+    hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
 
   /* Facebook / Meta */
@@ -274,12 +442,22 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.facebook.com/externalhit_uatext.php",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "meta-": {
     name: "Meta-",
     description: "Placeholder entry for Meta-* user agents.",
     hiddenHover: true,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "meta-webindexer": {
     name: "Meta-WebIndexer",
@@ -288,6 +466,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "facebookexternalhit",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "meta-externalads": {
     name: "Meta-ExternalAds",
@@ -296,6 +479,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "facebookexternalhit",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "meta-externalagent": {
     name: "Meta-ExternalAgent",
@@ -304,6 +492,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "facebookexternalhit",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "meta-externalfetcher": {
     name: "Meta-ExternalFetcher",
@@ -312,6 +505,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "facebookexternalhit",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* OpenAI */
@@ -321,6 +519,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://openai.com/gptbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "chatgpt-user": {
     name: "ChatGPT-User",
@@ -328,12 +531,22 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "gptbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "oai-": {
     name: "OAI-",
     description: "Placeholder entry for OAI-* user agents.",
     hiddenHover: true,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "oai-adsbot": {
     name: "OAI-AdsBot",
@@ -342,6 +555,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "gptbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "oai-searchbot": {
     name: "OAI-SearchBot",
@@ -350,6 +568,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "gptbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Amazon */
@@ -360,12 +583,22 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://developer.amazon.com/support/amazonbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "amzn-": {
     name: "Amzn-",
     description: "Placeholder entry for Amzn-* user agents.",
     hiddenHover: true,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "unknown",
+    wildcardUserAgentSupport: "unknown",
   },
   "amzn-searchbot": {
     name: "Amzn-SearchBot",
@@ -375,6 +608,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "amazonbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "amzn-user": {
     name: "Amzn-User",
@@ -384,6 +622,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "amazonbot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "ignored",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Perplexity */
@@ -393,14 +636,24 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://perplexity.ai/perplexitybot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
-  "perplexity-user": {
-    name: "Perplexity-User",
-    description: "Perplexity's fetcher for user requests without AI training.",
-    inheritsFromKey: "perplexitybot",
-    hiddenHover: false,
-    hiddenCompletion: false,
-  },
+  // "perplexity-user": {
+  //   name: "Perplexity-User",
+  //   description: "Perplexity's fetcher for user requests without AI training.",
+  //   inheritsFromKey: "perplexitybot",
+  //   hiddenHover: false,
+  //   hiddenCompletion: false,
+  //   supportsAllow: "unknown",
+  //   supportsCrawlDelay: "unknown",
+  //   supportsSitemap: "unknown",
+  //   supportsCleanParam: "ignored",
+  //   wildcardUserAgentSupport: "ignored",
+  // },
 
   /* Anthropic */
   claudebot: {
@@ -409,6 +662,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://support.anthropic.com/",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "claude-user": {
     name: "Claude-User",
@@ -416,6 +674,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "claudebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   "claude-searchbot": {
     name: "Claude-SearchBot",
@@ -423,6 +686,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     inheritsFromKey: "claudebot",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* ByteDance / TikTok */
@@ -431,6 +699,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     description: "ByteDance's crawler for indexing and AI training.",
     hiddenHover: false,
     hiddenCompletion: false,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Internet Archive */
@@ -440,6 +713,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://archive.org/details/archive.org_bot",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
 
   /* Other */
@@ -448,6 +726,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     description: "Crawler for Seznam, a Czech search engine.",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   coccocbot: {
     name: "CoccocBot",
@@ -455,6 +738,11 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://help.coccoc.com/searchengine",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   sogou: {
     name: "Sogou",
@@ -462,12 +750,22 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.sogou.com/docs/help/webmasters.htm#07",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   timpibot: {
     name: "Timpibot",
     description: "Timpi's crawler.",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   ccbot: {
     name: "CCBot",
@@ -475,13 +773,23 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://commoncrawl.org/faq/",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "supported",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   petalbot: {
     name: "PetalBot",
-    description: "PetalBot is the web crawler used by Petal Search.",
+    description: "Huawei's crawler for indexing.",
     url: "https://aspiegel.com/petalbot",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "unknown",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   semrushbot: {
     name: "SemrushBot",
@@ -489,27 +797,58 @@ export const CRAWLER_LOOKUP: Record<string, CrawlerInfo> = {
     url: "https://www.semrush.com/bot.html",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   dotbot: {
     name: "DotBot",
-    description:
-      "Moz's crawler for Link Explorer (formerly Open Site Explorer).",
+    description: "Moz's crawler for web indexing.",
     url: "https://www.opensiteexplorer.org/dotbot",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "unknown",
   },
   mj12bot: {
     name: "MJ12bot",
-    description: "MJ12bot is the crawler used by Majestic-12.",
+    description: "Majestic-12's crawler for web indexing.",
     url: "https://www.majestic12.co.uk/bot.php",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "unknown",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
   ahrefsbot: {
     name: "AhrefsBot",
-    description: "AhrefsBot is the crawler used by Ahrefs.",
+    description: "Ahrefs's crawler for web indexing.",
     url: "https://ahrefs.com/robot/",
     hiddenHover: false,
     hiddenCompletion: true,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
   },
-} as const;
+  ahrefssiteaudit: {
+    name: "AhrefsSiteAudit",
+    description: "Ahrefs's crawler for site auditing.",
+    url: "https://ahrefs.com/robot/",
+    hiddenHover: false,
+    hiddenCompletion: true,
+    supportsAllow: "supported",
+    supportsCrawlDelay: "supported",
+    supportsSitemap: "unknown",
+    supportsCleanParam: "ignored",
+    wildcardUserAgentSupport: "supported",
+  },
+};
