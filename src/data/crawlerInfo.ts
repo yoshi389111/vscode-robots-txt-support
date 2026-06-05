@@ -1,3 +1,6 @@
+/** Indicates the support level for a directive or feature. */
+export type SupportLevel = "supported" | "ignored" | "unknown";
+
 /**
  * Defines the structure for crawler information and a list of known crawlers with their details.
  */
@@ -19,15 +22,15 @@ export interface CrawlerInfo {
   /** WIP: List of fallback user agents for the crawler. */
   fallbackUserAgents?: string[];
   /** Indicates the support level for the `Allow` directive. */
-  supportsAllow: "supported" | "ignored" | "unknown";
+  supportsAllow: SupportLevel;
   /** Indicates the support level for the `Crawl-Delay` directive. */
-  supportsCrawlDelay: "supported" | "ignored" | "unknown";
+  supportsCrawlDelay: SupportLevel;
   /** Indicates the support level for the `Sitemap` directive. */
-  supportsSitemap: "supported" | "ignored" | "unknown";
+  supportsSitemap: SupportLevel;
   /** Indicates the support level for the `Clean-Param` directive. */
-  supportsCleanParam: "supported" | "ignored" | "unknown";
+  supportsCleanParam: SupportLevel;
   /** Indicates the support level for wildcard user agents. */
-  wildcardUserAgentSupport: "supported" | "ignored" | "unknown";
+  wildcardUserAgentSupport: SupportLevel;
 }
 
 // ref. <https://github.com/monperrus/crawler-user-agents/blob/master/crawler-user-agents.json>
@@ -851,4 +854,4 @@ export const CRAWLER_LOOKUP: Readonly<Record<string, CrawlerInfo>> = {
     supportsCleanParam: "ignored",
     wildcardUserAgentSupport: "supported",
   },
-} satisfies Record<Lowercase<string>, CrawlerInfo>;
+} as const satisfies Record<Lowercase<string>, CrawlerInfo>;
