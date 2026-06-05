@@ -117,4 +117,4 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Warning,
     message: "Invalid directive value.",
   },
-} as const;
+} as const satisfies Record<string, DiagnosticInfo>;
