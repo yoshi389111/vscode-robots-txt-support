@@ -9,9 +9,9 @@ export interface CrawlerInfo {
   /** URL for more information about the crawler. */
   url?: string;
   /** Prefix of completion item. lowercase */
-  prefix?: string;
+  prefix?: Lowercase<string>;
   /** Key of the crawler this one inherits from. lowercase */
-  inheritsFromKey?: string;
+  inheritsFromKey?: Lowercase<string>;
   /** Whether to hide hover information for the crawler. */
   hiddenHover: boolean;
   /** Whether to hide completion items for the crawler. */
@@ -851,4 +851,4 @@ export const CRAWLER_LOOKUP: Readonly<Record<string, CrawlerInfo>> = {
     supportsCleanParam: "ignored",
     wildcardUserAgentSupport: "supported",
   },
-};
+} satisfies Record<Lowercase<string>, CrawlerInfo>;

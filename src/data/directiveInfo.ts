@@ -27,7 +27,7 @@ export interface WebLinkInfo {
  */
 export interface DirectiveInfo {
   /** The name of the directive. */
-  name: string;
+  name: Capitalize<string>;
   /** A brief description of the directive's purpose. */
   description: string;
   /** Detailed information about the directive. */
@@ -355,4 +355,4 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     isDeprecated: true,
     scope: "global",
   },
-};
+} as const satisfies Record<Lowercase<string>, DirectiveInfo>;
