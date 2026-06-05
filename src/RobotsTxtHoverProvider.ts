@@ -14,7 +14,7 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
    * @param document The text document in which the command was invoked.
    * @param position The position at which the command was invoked.
    * @param _token A cancellation token.
-   * @returns A `Hover` object containing the hover information, or `null` if no hover information is available.
+   * @returns A `Hover` object containing the hover information, or `undefined` if no hover information is available.
    */
   public provideHover(
     document: vscode.TextDocument,
