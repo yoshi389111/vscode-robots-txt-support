@@ -9,12 +9,21 @@ import {
 import { isEmptySpan, Span, subspan } from "./parser/span";
 import { getLogger } from "./utils/logger";
 
-/** Completion item provider for robots.txt */
+/** Completion item provider for `robots.txt` files. */
 export class RobotsTxtCompletionItemProvider
   implements vscode.CompletionItemProvider
 {
+  /** The logger instance. */
   private readonly log = getLogger();
 
+  /**
+   * Provides completion items for the given position in the document.
+   * @param document The text document in which the command was invoked.
+   * @param position The position at which the command was invoked.
+   * @param _token A cancellation token.
+   * @param _context Additional context for the completion request.
+   * @returns A list of completion items or undefined if no completion is available for the given context.
+   */
   public async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -67,6 +76,13 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for directive names based on the current position in the line.
+   * @param _document The text document in which the command was invoked.
+   * @param parsedLine The parsed line containing the directive and its components.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for directive names, or an empty list if no completion is available for the given context.
+   */
   private provideCompletionDirectiveName(
     _document: vscode.TextDocument,
     parsedLine: ParsedLine,
@@ -112,6 +128,13 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for directive values based on the current position in the line and the directive's parameters.
+   * @param document The text document in which the command was invoked.
+   * @param parsedLine The parsed line containing the directive and its components.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for directive values, or undefined if no completion is available for the given context.
+   */
   private async provideCompletionDirectiveValue(
     document: vscode.TextDocument,
     parsedLine: ParsedLine,
@@ -206,6 +229,14 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for a specific directive parameter.
+   * @param document The text document in which the command was invoked.
+   * @param paramSpan The span representing the parameter for which completion is being provided.
+   * @param parameterInfo The information about the parameter.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for the parameter, or undefined if no completion is available for the given context.
+   */
   private async provideCompletionParameter(
     document: vscode.TextDocument,
     paramSpan: Span,
@@ -238,6 +269,12 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for product tokens based on the current input and position.
+   * @param value The span representing the current value of the parameter for which completion is being provided.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for the product token, or undefined if no completion is available for the given context.
+   */
   private provideCompletionProductToken(
     value: Span,
     position: vscode.Position,
@@ -245,13 +282,13 @@ export class RobotsTxtCompletionItemProvider
     this.log.trace(">>> Providing completion for product token", value);
     try {
       const inputLength = position.character - value.range.start.character;
-      const inputPart = value.text.substring(0, inputLength).toLowerCase();
+      const inputPrefix = value.text.substring(0, inputLength).toLowerCase();
       return Object.entries(CRAWLER_LOOKUP)
-        .filter(([key, _]) => key.startsWith(inputPart))
+        .filter(([key, _]) => key.startsWith(inputPrefix))
         .filter(([_, info]) => !info.hiddenCompletion)
-        .filter(([key, _]) => key !== inputPart)
+        .filter(([key, _]) => key !== inputPrefix)
         .filter(
-          ([_, info]) => !info.prefix || inputPart.startsWith(info.prefix),
+          ([_, info]) => !info.prefix || inputPrefix.startsWith(info.prefix),
         )
         .map(([_, info]) =>
           this.newCompletion(
@@ -265,6 +302,13 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for path patterns based on the current input and position.
+   * @param document The text document in which the command was invoked.
+   * @param paramSpan The span representing the current value of the parameter for which completion is being provided.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for path patterns, or undefined if no completion is available for the given context.
+   */
   private async provideCompletionPath(
     document: vscode.TextDocument,
     paramSpan: Span,
@@ -322,6 +366,13 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Provides completion items for URLs based on the current input and position.
+   * @param document The text document in which the command was invoked.
+   * @param paramSpan The span representing the current value of the parameter for which completion is being provided.
+   * @param position The position at which the command was invoked.
+   * @returns A list of completion items for URLs, or undefined if no completion is available for the given context.
+   */
   private async provideCompletionUrl(
     document: vscode.TextDocument,
     paramSpan: Span,
@@ -379,6 +430,11 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
+  /**
+   * Reads the contents of a directory and returns a list of entries with their types.
+   * @param uri The URI of the directory to read.
+   * @returns A promise that resolves to a list of entries in the directory.
+   */
   private async readDirectory(
     uri: vscode.Uri,
   ): Promise<[string, vscode.FileType][]> {
@@ -391,7 +447,13 @@ export class RobotsTxtCompletionItemProvider
     }
   }
 
-  /** Creates a new completion item for specific kind */
+  /**
+   * Creates a new completion item for a specific kind.
+   * @param label The label of the completion item.
+   * @param range The range in the document where the completion item applies.
+   * @param itemKind The kind of the completion item.
+   * @returns A new completion item.
+   */
   private newCompletion(
     label: string,
     range: vscode.Range,

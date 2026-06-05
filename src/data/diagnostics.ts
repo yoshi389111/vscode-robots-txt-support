@@ -1,5 +1,8 @@
 import * as vscode from "vscode";
 
+/**
+ * Defines the structure of diagnostic information used in the extension.
+ */
 export interface DiagnosticInfo {
   code: string;
   severity: vscode.DiagnosticSeverity;
@@ -7,6 +10,9 @@ export interface DiagnosticInfo {
   message: string;
 }
 
+/**
+ * A lookup object containing diagnostic information for various issues that can be detected in robots.txt files.
+ */
 export const DIAGNOSTIC_LOOKUP = {
   FILENAME_INVALID: {
     code: "RBT001",
@@ -80,10 +86,15 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Error,
     message: "'$' is only allowed at the end of the pattern.",
   },
-  PATH_PATTERN_INVALID_URLENCODE: {
+  PATH_PATTERN_INVALID_URL_CHARACTER: {
     code: "RBT111",
     severity: vscode.DiagnosticSeverity.Error,
     message: "Invalid URL characters.",
+  },
+  PATH_PATTERN_INVALID_URL_ENCODING: {
+    code: "RBT112",
+    severity: vscode.DiagnosticSeverity.Error,
+    message: "Invalid URL encoding.",
   },
 
   URL_INVALID: {
@@ -112,4 +123,4 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Warning,
     message: "Invalid directive value.",
   },
-} as const;
+} as const satisfies Record<string, DiagnosticInfo>;

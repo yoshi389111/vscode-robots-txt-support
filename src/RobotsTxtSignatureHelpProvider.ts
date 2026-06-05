@@ -4,14 +4,21 @@ import { Span } from "./parser/span";
 import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { getLogger } from "./utils/logger";
 
-/**
- * Provides signature help for `robots.txt` directives, showing usage and parameter information as the user types.
- */
+/** Provides signature help for `robots.txt` directives. */
 export class RobotsTxtSignatureHelpProvider
   implements vscode.SignatureHelpProvider
 {
+  /** The logger instance. */
   private readonly log = getLogger();
 
+  /**
+   * Provides signature help for `robots.txt` directives based on the current cursor position.
+   * @param document The text document in which the command was invoked.
+   * @param position The position at which the command was invoked.
+   * @param _token A cancellation token.
+   * @param _context Context carrying additional information about the command invocation.
+   * @returns A `SignatureHelp` object containing the signature information, or `undefined` if no signature help is available.
+   */
   public provideSignatureHelp(
     document: vscode.TextDocument,
     position: vscode.Position,

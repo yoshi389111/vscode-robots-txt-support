@@ -3,6 +3,9 @@ import { parseLine, splitTokenWithLimit } from "./lineParser";
 import { Span, isEmptySpan } from "./span";
 import { DIRECTIVE_LOOKUP } from "../data/directiveInfo";
 
+/**
+ * Defines the structure of a directive in the abstract syntax tree (AST) representation of a robots.txt file.
+ */
 export interface AstDirective {
   /** directive type. always lowercase */
   type: string;
@@ -16,6 +19,9 @@ export interface AstDirective {
   comment: Span | undefined;
 }
 
+/**
+ * Defines the structure of a group in the abstract syntax tree (AST) representation of a robots.txt file.
+ */
 export interface AstGroup {
   userAgents: AstDirective[];
   rules: AstDirective[];
@@ -25,6 +31,9 @@ export interface AstGroup {
   hasRule: boolean;
 }
 
+/**
+ * Defines the structure of the root of the abstract syntax tree (AST) representation of a robots.txt file.
+ */
 export interface AstRoot {
   outside: AstGroup;
   groups: AstGroup[];
@@ -90,6 +99,10 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
   return astRoot;
 }
 
+/**
+ * Creates a new AST group with default values.
+ * @returns A new AST group object initialized with empty user agents, rules, and line numbers set to 0.
+ */
 function createAstGroup(): AstGroup {
   return {
     userAgents: [],

@@ -47,7 +47,7 @@ export interface DirectiveInfo {
 /**
  * A record of all known directives, keyed by their lowercase name.
  */
-export const DIRECTIVE_LOOKUP: Record<string, DirectiveInfo> = {
+export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
   "user-agent": {
     name: "User-agent",
     description: "Specifies which crawler the following rule group applies to.",

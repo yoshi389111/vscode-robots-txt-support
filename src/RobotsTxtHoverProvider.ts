@@ -2,12 +2,20 @@ import * as vscode from "vscode";
 import { parseLine } from "./parser/lineParser";
 import * as constants from "./data/constants";
 import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
-import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 import { getLogger } from "./utils/logger";
 
+/** Provides hover information for `robots.txt` files. */
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
+  /** The logger instance. */
   private readonly log = getLogger();
 
+  /**
+   * Provides hover information for `robots.txt` files.
+   * @param document The text document in which the command was invoked.
+   * @param position The position at which the command was invoked.
+   * @param _token A cancellation token.
+   * @returns A `Hover` object containing the hover information, or `undefined` if no hover information is available.
+   */
   public provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -17,28 +25,21 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
     try {
       const parsedLine = parseLine(document.lineAt(position.line));
       const directiveKey = parsedLine.name?.text.toLowerCase();
-      const crawlerKey = parsedLine.value?.text.toLowerCase();
 
       if (directiveKey === undefined) {
         // empty line or comment-only line, just ignore
-        return null;
+        return undefined;
       }
 
       const directive = DIRECTIVE_LOOKUP[directiveKey];
       if (!directive) {
         // unknown directive, just ignore
-        return null;
+        return undefined;
       }
 
-      const crawlerInfo =
-        directiveKey === "user-agent" ? getCrawlerInfo(crawlerKey) : undefined;
-
-      const exampleParams = directive.params.map((p) => p.example).join(" ");
-
       // example (code block)
-      const example = crawlerInfo
-        ? `User-agent: ${crawlerInfo.name}`
-        : `${directive.name}: ${exampleParams}`;
+      const exampleParams = directive.params.map((p) => p.example).join(" ");
+      const example = `${directive.name}: ${exampleParams}`;
 
       const md = new vscode.MarkdownString();
       md.appendCodeblock(example, constants.LANGUAGE_ID);
@@ -58,61 +59,22 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
         );
       }
       md.appendMarkdown("\n");
-      // crawler
-      if (crawlerInfo) {
-        md.appendMarkdown("**Crawler:**\n\n");
-        md.appendMarkdown(
-          `- ${escapeMarkdown(crawlerInfo.name)} ― ${escapeMarkdown(crawlerInfo.description)}\n\n`,
-        );
-      }
       // reference
-      if (directive.reference.length > 0 || crawlerInfo?.url) {
+      if (directive.reference.length > 0) {
         md.appendMarkdown("**References:**\n\n");
         directive.reference.forEach((ref) => {
           md.appendMarkdown(`- [${escapeMarkdown(ref.text)}](${ref.url})\n`);
         });
-        if (crawlerInfo?.url) {
-          md.appendMarkdown(
-            `- [${escapeMarkdown(crawlerInfo.name)}](${crawlerInfo.url})\n`,
-          );
-        }
         md.appendMarkdown("\n");
       }
       return new vscode.Hover(md);
     } catch (error) {
       this.log.error("Error providing hover for document", error);
-      return null;
+      return undefined;
     } finally {
       this.log.trace("Finished providing hover for document");
     }
   }
-}
-
-function getCrawlerInfo(
-  crawlerKey: string | undefined,
-): CrawlerInfo | undefined {
-  if (!crawlerKey) {
-    return undefined;
-  }
-
-  const crawlerInfo = CRAWLER_LOOKUP[crawlerKey];
-  if (!crawlerInfo || crawlerInfo.hiddenHover) {
-    return undefined;
-  }
-
-  const baseCrawlerInfo = crawlerInfo.inheritsFromKey
-    ? CRAWLER_LOOKUP[crawlerInfo.inheritsFromKey]
-    : undefined;
-
-  if (!baseCrawlerInfo) {
-    return crawlerInfo;
-  }
-
-  // merge with base crawler info
-  return {
-    ...baseCrawlerInfo,
-    ...crawlerInfo,
-  };
 }
 
 /**

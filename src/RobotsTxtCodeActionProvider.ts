@@ -2,7 +2,9 @@ import * as vscode from "vscode";
 import { getLogger } from "./utils/logger";
 import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 
+/** Provides code actions for `robots.txt` files. */
 export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
+  /** The logger instance. */
   private readonly log = getLogger();
 
   /** Metadata for the code action provider. */
@@ -72,24 +74,31 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   ): vscode.CodeAction[] {
     switch (diagnostic.code) {
       case DIAGNOSTIC_LOOKUP.NUMBER_LEADING_ZERO.code:
-        return [this.createLeadingZerosRemovalFix(document, diagnostic)];
+        return this.createLeadingZerosRemovalFix(document, diagnostic);
 
       case DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON.code:
-        return [this.createMissingColonFix(document, diagnostic)];
+        return this.createMissingColonFix(document, diagnostic);
 
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_NOT_START_SLASH.code:
-        return [this.createPathPatternNotStartSlashFix(document, diagnostic)];
+        return this.createPathPatternNotStartSlashFix(document, diagnostic);
 
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK.code:
-        return [this.createPathPatternDoubleAsteriskFix(document, diagnostic)];
+        return this.createPathPatternDoubleAsteriskFix(document, diagnostic);
 
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_UNNECESSARY_WILDCARD.code:
-        return [
-          this.createPathPatternUnnecessaryWildcardFix(document, diagnostic),
-        ];
+        return this.createPathPatternUnnecessaryWildcardFix(
+          document,
+          diagnostic,
+        );
 
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOLLAR.code:
-        return [this.createPathPatternDollarFix(document, diagnostic)];
+        return this.createPathPatternDollarFix(document, diagnostic);
+
+      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.code:
+        return this.createPathPatternInvalidUrlEncodingFix(
+          document,
+          diagnostic,
+        );
 
       default:
         return [];
@@ -100,144 +109,217 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
    * Creates a code action to remove leading zeros from a numeric value.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createLeadingZerosRemovalFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
+  ): vscode.CodeAction[] {
     const REGEX_LEADING_ZEROS = /^0+(?!$)/;
-    const normalizedString = document
+    const cleanedString = document
       .getText(diagnostic.range)
       .replace(REGEX_LEADING_ZEROS, "");
-    const fix = new vscode.CodeAction(
+
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      cleanedString,
       "Remove leading zeros",
-      vscode.CodeActionKind.QuickFix,
     );
-    fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, diagnostic.range, normalizedString);
-    fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
-    return fix;
+
+    return [fix];
   }
 
   /**
    * Creates a code action to insert a missing colon in a directive.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createMissingColonFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
-    const fix = new vscode.CodeAction(
+  ): vscode.CodeAction[] {
+    const insertedString = `${document.getText(diagnostic.range)}: `;
+
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      insertedString,
       "Insert missing ':'",
-      vscode.CodeActionKind.QuickFix,
     );
-    fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.insert(document.uri, diagnostic.range.end, ": ");
-    fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
-    return fix;
+
+    return [fix];
   }
 
   /**
    * Creates a code action to insert a leading slash in a path pattern.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createPathPatternNotStartSlashFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
-    const fix = new vscode.CodeAction(
+  ): vscode.CodeAction[] {
+    const insertedString = `/${document.getText(diagnostic.range)}`;
+
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      insertedString,
       "Insert leading '/'",
-      vscode.CodeActionKind.QuickFix,
     );
-    fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.insert(document.uri, diagnostic.range.start, "/");
-    fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
-    return fix;
+
+    return [fix];
   }
 
   /**
    * Creates a code action to replace double asterisks with a single asterisk in a path pattern.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createPathPatternDoubleAsteriskFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
+  ): vscode.CodeAction[] {
     const REGEX_DOUBLE_ASTERISK = /\*\*+/g;
     const cleanedString = document
       .getText(diagnostic.range)
       .replace(REGEX_DOUBLE_ASTERISK, "*");
 
-    const fix = new vscode.CodeAction(
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      cleanedString,
       "Replace '**' with '*'",
-      vscode.CodeActionKind.QuickFix,
     );
-    fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, diagnostic.range, cleanedString);
-    fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
-    return fix;
+
+    return [fix];
   }
 
   /**
    * Creates a code action to remove unnecessary wildcards at the end of a path pattern.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createPathPatternUnnecessaryWildcardFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
+  ): vscode.CodeAction[] {
     const REGEX_TRAILING_ASTERISKS = /\*+$/;
     const cleanedString = document
       .getText(diagnostic.range)
       .replace(REGEX_TRAILING_ASTERISKS, "");
 
-    const fix = new vscode.CodeAction(
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      cleanedString,
       "Remove unnecessary '*'",
-      vscode.CodeActionKind.QuickFix,
     );
-    fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, diagnostic.range, cleanedString);
-    fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
-    return fix;
+
+    return [fix];
   }
 
   /**
-   * Creates a code action to remove or encode the '$' character in a path pattern.
+   * Creates a code action to encode or remove invalid '$' characters in a path pattern.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
-   * @returns A code action.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
   private createPathPatternDollarFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-  ): vscode.CodeAction {
+  ): vscode.CodeAction[] {
     const REGEX_DOLLAR_SIGN_NOT_AT_END = /\$(?=.)/g;
-    const cleanedString = document
-      .getText(diagnostic.range)
-      .replace(REGEX_DOLLAR_SIGN_NOT_AT_END, "%24");
+    const targetString = document.getText(diagnostic.range);
 
-    const fix = new vscode.CodeAction(
-      "Replace '$' with '%24'",
-      vscode.CodeActionKind.QuickFix,
+    const replacedString = targetString.replace(
+      REGEX_DOLLAR_SIGN_NOT_AT_END,
+      "%24",
     );
+    const fixReplace = this.createReplaceFix(
+      document,
+      diagnostic,
+      replacedString,
+      "Encode invalid '$' characters",
+    );
+
+    const removedString = targetString.replace(
+      REGEX_DOLLAR_SIGN_NOT_AT_END,
+      "",
+    );
+    const fixRemove = this.createReplaceFix(
+      document,
+      diagnostic,
+      removedString,
+      "Remove invalid '$' characters",
+      false,
+    );
+
+    return [fixReplace, fixRemove];
+  }
+
+  /**
+   * Creates a code action to encode or remove invalid '%' characters in a path pattern.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the issue.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
+   */
+  private createPathPatternInvalidUrlEncodingFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const REGEX_INVALID_URL_ENCODING = /%(?![0-9A-Fa-f]{2})/g;
+    const targetString = document.getText(diagnostic.range);
+
+    const replacedString = targetString.replace(
+      REGEX_INVALID_URL_ENCODING,
+      "%25",
+    );
+    const fixReplace = this.createReplaceFix(
+      document,
+      diagnostic,
+      replacedString,
+      "Encode invalid '%' characters",
+    );
+
+    const removedString = targetString.replace(REGEX_INVALID_URL_ENCODING, "");
+    const fixRemove = this.createReplaceFix(
+      document,
+      diagnostic,
+      removedString,
+      "Remove invalid '%' characters",
+      false,
+    );
+
+    return [fixReplace, fixRemove];
+  }
+
+  /**
+   * Helper method to create a code action that replaces the text in the diagnostic range with the provided new text.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic for which to create the code action.
+   * @param newText The new text to replace the diagnostic range with.
+   * @param title The title of the code action.
+   * @param isPreferred Whether the code action is preferred.
+   * @returns A code action representing the quick fix.
+   */
+  private createReplaceFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+    newText: string,
+    title: string,
+    isPreferred: boolean = true,
+  ): vscode.CodeAction {
+    const fix = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, diagnostic.range, cleanedString);
+    fix.edit.replace(document.uri, diagnostic.range, newText);
     fix.diagnostics = [diagnostic];
-    fix.isPreferred = true;
+    fix.isPreferred = isPreferred;
     return fix;
   }
 

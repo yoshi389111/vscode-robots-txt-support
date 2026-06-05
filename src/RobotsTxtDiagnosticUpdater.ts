@@ -25,17 +25,22 @@ const REGEX_NUMERIC = /^\d+$/;
 /** Regular expression to validate numeric values with leading zeros. */
 const REGEX_LEADING_ZEROS = /^0+\d+$/;
 
+/** Regular expression to validate URL encoding. */
+const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
+
 /** Recommended maximum file size. (500 KiB) */
 const FILE_SIZE_LIMIT = 500 * 1024;
 
+/** Updates diagnostic collection for `robots.txt` files. */
 export class RobotsTxtDiagnosticUpdater {
+  /** The logger instance. */
   private readonly log = getLogger();
 
   /** The list of collected diagnostics. */
   private diagnostics: vscode.Diagnostic[] = [];
 
   /**
-   * Updates the diagnostics for the given document by validating its content and structure according to the rules of robots.txt files.
+   * Updates the diagnostics for the given document by validating its content and structure according to the rules of `robots.txt` files.
    * @param document The text document to be validated and for which diagnostics will be updated.
    * @param collection The diagnostic collection to which the generated diagnostics will be added.
    */
@@ -232,7 +237,13 @@ export class RobotsTxtDiagnosticUpdater {
     if (!REGEX_ENCODED_PATH.test(paramToken.text)) {
       // The path pattern contains unencoded characters that should be URL-encoded
       this.addDiagnostic(
-        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URLENCODE,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER,
+        paramToken.range,
+      );
+    } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
+      // The path pattern contains invalid URL encoding
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING,
         paramToken.range,
       );
     }
@@ -306,6 +317,11 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
+  /**
+   * Retrieves the file size of the given document.
+   * @param document The text document whose file size is to be retrieved.
+   * @returns The size of the file in bytes.
+   */
   private async getFileSize(document: vscode.TextDocument): Promise<number> {
     const stat = await vscode.workspace.fs.stat(document.uri);
     return stat.size;

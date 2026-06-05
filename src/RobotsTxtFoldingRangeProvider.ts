@@ -2,11 +2,20 @@ import * as vscode from "vscode";
 import { parseRobotsTxt } from "./parser/documentParser";
 import { getLogger } from "./utils/logger";
 
+/** Provides folding ranges for `robots.txt` files. */
 export class RobotsTxtFoldingRangeProvider
   implements vscode.FoldingRangeProvider
 {
+  /** The logger instance. */
   private readonly log = getLogger();
 
+  /**
+   * Provides folding ranges for the given document.
+   * @param document The text document for which to provide folding ranges.
+   * @param _context The folding context.
+   * @param _token A cancellation token.
+   * @returns An array of folding ranges for the document.
+   */
   public provideFoldingRanges(
     document: vscode.TextDocument,
     _context: vscode.FoldingContext,
