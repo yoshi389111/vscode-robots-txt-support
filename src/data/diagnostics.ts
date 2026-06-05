@@ -1,5 +1,8 @@
 import * as vscode from "vscode";
 
+/**
+ * Defines the structure of diagnostic information used in the extension.
+ */
 export interface DiagnosticInfo {
   code: string;
   severity: vscode.DiagnosticSeverity;
@@ -7,6 +10,9 @@ export interface DiagnosticInfo {
   message: string;
 }
 
+/**
+ * A lookup object containing diagnostic information for various issues that can be detected in robots.txt files.
+ */
 export const DIAGNOSTIC_LOOKUP = {
   FILENAME_INVALID: {
     code: "RBT001",

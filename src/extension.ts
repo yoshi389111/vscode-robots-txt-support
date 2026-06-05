@@ -10,10 +10,17 @@ import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
 
+/**
+ * Activates the extension by registering all providers and listeners.
+ * @param context The extension context provided by VS Code
+ */
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...initializeExtension(context));
 }
 
+/**
+ * Deactivates the extension.
+ */
 export function deactivate() {}
 
 /**

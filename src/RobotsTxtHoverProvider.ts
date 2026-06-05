@@ -5,9 +5,18 @@ import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
 import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 import { getLogger } from "./utils/logger";
 
+/** Provides hover information for `robots.txt` files. */
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
+  /** The logger instance. */
   private readonly log = getLogger();
 
+  /**
+   * Provides hover information for `robots.txt` files.
+   * @param document The text document in which the command was invoked.
+   * @param position The position at which the command was invoked.
+   * @param _token A cancellation token.
+   * @returns A `Hover` object containing the hover information, or `null` if no hover information is available.
+   */
   public provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -88,6 +97,11 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   }
 }
 
+/**
+ * Retrieves crawler information based on the provided crawler key.
+ * @param crawlerKey The key representing the crawler (user-agent) to look up.
+ * @returns The CrawlerInfo object containing details about the crawler, or undefined if not available.
+ */
 function getCrawlerInfo(
   crawlerKey: string | undefined,
 ): CrawlerInfo | undefined {

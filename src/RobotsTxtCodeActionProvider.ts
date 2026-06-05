@@ -2,7 +2,9 @@ import * as vscode from "vscode";
 import { getLogger } from "./utils/logger";
 import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 
+/** Provides code actions for `robots.txt` files. */
 export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
+  /** The logger instance. */
   private readonly log = getLogger();
 
   /** Metadata for the code action provider. */
