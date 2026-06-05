@@ -1,0 +1,28 @@
+{
+  "Robots.txt template": {
+    "prefix": ["robots.txt"],
+    "body": [
+      "User-agent: *",
+      "Disallow:",
+      "Allow:",
+      "",
+      "# User-agent: Googlebot",
+      "# User-agent: Bingbot",
+      "# User-agent: YandexBot",
+      "# User-agent: Baiduspider",
+      "# User-agent: Slurp",
+      "# User-agent: FacebookExternalHit",
+      "# User-agent: GPTBot",
+      "# User-agent: ClaudeBot",
+      "# User-agent: Google-Extended",
+      "# User-agent: Amazonbot",
+      "# User-agent: Applebot",
+      "# User-agent: PerplexityBot",
+      "# User-agent: DuckDuckBot",
+      "",
+      "# Sitemap: https://example.com/sitemap.xml",
+      ""
+      ],
+    "description": "A basic `robots.txt` template."
+  }
+}
