@@ -22,7 +22,7 @@ export class RobotsTxtCodelensProvider
   /** The logger instance. */
   private readonly log = getLogger();
 
-  /** The list of collected diagnostics. */
+  /** The list of registered disposables. */
   private readonly disposables: vscode.Disposable[] = [];
 
   constructor() {
