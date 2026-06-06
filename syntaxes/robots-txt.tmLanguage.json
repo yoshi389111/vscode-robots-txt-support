@@ -5,13 +5,10 @@
 			"include": "#user-agent"
 		},
 		{
-			"include": "#disallow"
+			"include": "#rule"
 		},
 		{
-			"include": "#allow"
-		},
-		{
-			"include": "#sitemap"
+			"include": "#global"
 		},
 		{
 			"include": "#unknown-directives"
@@ -35,45 +32,31 @@
 				}
 			}
 		},
-		"disallow": {
-			"match": "^\\s*(?i:(disallow))\\s*(:)\\s*([^#\\s]*)?",
+		"rule": {
+			"match": "^\\s*(?i:(disallow|allow|crawl-delay|request-rate|visit-time))\\s*(:)\\s*([^#\\s]*)?",
 			"captures": {
 				"1": {
-					"name": "keyword.control.disallow.robots-txt"
+					"name": "keyword.control.rule.robots-txt"
 				},
 				"2": {
 					"name": "punctuation.colon.separator.robots-txt"
 				},
 				"3": {
-					"name": "string.regexp.robots-txt"
+					"name": "string.unquoted.robots-txt"
 				}
 			}
 		},
-		"allow": {
-			"match": "^\\s*(?i:(allow))\\s*(:)\\s*([^#\\s]*)?",
+		"global": {
+			"match": "^\\s*(?i:(sitemap|clean-param|host|noindex|robot-version|comment))\\s*(:)\\s*([^#\\s]*)?",
 			"captures": {
 				"1": {
-					"name": "keyword.control.allow.robots-txt"
+					"name": "keyword.other.global.robots-txt"
 				},
 				"2": {
 					"name": "punctuation.colon.separator.robots-txt"
 				},
 				"3": {
-					"name": "string.regexp.robots-txt"
-				}
-			}
-		},
-		"sitemap": {
-			"match": "^\\s*(?i:(sitemap))\\s*(:)\\s*([^#\\s]*)?",
-			"captures": {
-				"1": {
-					"name": "keyword.other.sitemap.robots-txt"
-				},
-				"2": {
-					"name": "punctuation.colon.separator.robots-txt"
-				},
-				"3": {
-					"name": "markup.underline.link.robots-txt"
+					"name": "string.unquoted.robots-txt"
 				}
 			}
 		},
