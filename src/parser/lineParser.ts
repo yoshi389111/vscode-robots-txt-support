@@ -48,7 +48,7 @@ function splitComment(lineText: vscode.TextLine): [Span, Span?] {
  * @param separatorRegex The regular expression to use as the separator for splitting the content.
  * @returns An array of spans resulting from the split operation.
  */
-function splitTokens(
+export function splitTokens(
   content: Span,
   separatorRegex: RegExp,
 ): [Span] | [Span, Span, Span] {
