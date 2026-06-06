@@ -33,7 +33,7 @@
 			}
 		},
 		"rule": {
-			"match": "^\\s*(?i:(disallow|allow|crawl-delay|request-rate|visit-time))\\s*(:)\\s*([^#\\s]*)?",
+			"match": "^\\s*(?i:(disallow|allow|crawl-delay|request-rate|visit-time))\\s*(:)\\s*([^#]*?)\\s*(?=#|$)",
 			"captures": {
 				"1": {
 					"name": "keyword.control.rule.robots-txt"
