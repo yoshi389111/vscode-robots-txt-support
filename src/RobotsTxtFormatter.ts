@@ -117,14 +117,16 @@ export function formatLine(parsedLine: ParsedLine): string {
   const { name, separator, value, comment } = parsedLine;
 
   const params: Span[] = [];
-  let remainder = value;
-  while (remainder) {
-    const tokens = splitTokens(remainder, /\s+/);
-    params.push(tokens[0]);
-    if (tokens.length === 1) {
-      break;
+  if (value && !isEmptySpan(value)) {
+    let remainder = value;
+    while (remainder) {
+      const tokens = splitTokens(remainder, /\s+/);
+      params.push(tokens[0]);
+      if (tokens.length === 1) {
+        break;
+      }
+      remainder = tokens[2];
     }
-    remainder = tokens[2];
   }
 
   const nameText = canonicalizeDirectiveName(name.text);
