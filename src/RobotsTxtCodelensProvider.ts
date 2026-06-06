@@ -49,12 +49,20 @@ export class RobotsTxtCodelensProvider
       },
     ];
 
+    if (crawlerInfo.notice) {
+      quickPickItems.push({
+        label: "Notice",
+        detail: crawlerInfo.notice,
+        iconPath: new vscode.ThemeIcon("warning"),
+      });
+    }
+
     if (crawlerInfo.url) {
       quickPickItems.push({
         label: "Open Documentation",
         description: crawlerInfo.url,
         detail: "Click to open the crawler's documentation in browser",
-        iconPath: new vscode.ThemeIcon("ports-open-browser-icon"),
+        iconPath: new vscode.ThemeIcon("book"),
         openUrl: crawlerInfo.url,
       });
     }
@@ -119,8 +127,8 @@ export class RobotsTxtCodelensProvider
       return undefined;
     }
     const userAgentKey = userAgentSpan.text.toLowerCase();
-    const crawlerInfo = this.getCrawlerInfo(userAgentKey);
-    if (!crawlerInfo || crawlerInfo.hiddenHover) {
+    const crawlerInfo = CRAWLER_LOOKUP[userAgentKey];
+    if (!crawlerInfo || crawlerInfo.isPlaceholder) {
       return undefined;
     }
     const codelens = new vscode.CodeLens(userAgentSpan.range, {
@@ -129,25 +137,5 @@ export class RobotsTxtCodelensProvider
       arguments: [crawlerInfo],
     });
     return codelens;
-  }
-
-  /**
-   * Retrieves crawler information based on the user agent key.
-   * @param userAgentKey The user agent key to look up.
-   * @returns The crawler information or undefined if not found or hidden.
-   */
-  private getCrawlerInfo(userAgentKey: string): CrawlerInfo | undefined {
-    const crawlerInfo = CRAWLER_LOOKUP[userAgentKey];
-    if (!crawlerInfo || crawlerInfo.hiddenHover) {
-      return undefined;
-    }
-    if (!crawlerInfo.inheritsFromKey) {
-      return crawlerInfo;
-    }
-    const baseCrawlerInfo = CRAWLER_LOOKUP[crawlerInfo.inheritsFromKey];
-    if (!baseCrawlerInfo) {
-      return crawlerInfo;
-    }
-    return { ...baseCrawlerInfo, ...crawlerInfo };
   }
 }
