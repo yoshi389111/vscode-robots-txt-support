@@ -47,7 +47,7 @@
 			}
 		},
 		"global": {
-			"match": "^\\s*(?i:(sitemap|clean-param|host|noindex|robot-version|comment))\\s*(:)\\s*([^#\\s]*)?",
+			"match": "^\\s*(?i:(sitemap|clean-param|host|noindex|robot-version|comment))\\s*(:)\\s*([^#]*?)\\s*(?=#|$)",
 			"captures": {
 				"1": {
 					"name": "keyword.other.global.robots-txt"
