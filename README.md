@@ -11,3 +11,5 @@ VS Code extension for `robots.txt` language support.
 - Diagnostics and error reporting
 - Quick fixes for common issues
 - CodeLens for user-agents
+- Formatting support
+- Snippets for common directives

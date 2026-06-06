@@ -15,7 +15,8 @@
   "categories": [
     "Programming Languages",
     "Snippets",
-    "Linters"
+    "Linters",
+    "Formatters"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
