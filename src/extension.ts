@@ -6,6 +6,9 @@ import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { RobotsTxtCodeActionProvider } from "./RobotsTxtCodeActionProvider";
 import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { RobotsTxtCodelensProvider } from "./RobotsTxtCodelensProvider";
+import { RobotsTxtDocumentFormattingEditProvider } from "./RobotsTxtDocumentFormattingEditProvider";
+import { RobotsTxtDocumentRangeFormattingEditProvider } from "./RobotsTxtDocumentRangeFormattingEditProvider";
+import { RobotsTxtOnTypeFormattingEditProvider } from "./RobotsTxtOnTypeFormattingEditProvider";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
@@ -75,6 +78,24 @@ function* initializeExtension(
   yield vscode.languages.registerCodeLensProvider(
     constants.LANGUAGE_ID,
     codelensProvider,
+  );
+
+  // Register the document formatting edit provider
+  yield vscode.languages.registerDocumentFormattingEditProvider(
+    constants.LANGUAGE_ID,
+    new RobotsTxtDocumentFormattingEditProvider(),
+  );
+
+  // Register the document range formatting edit provider
+  yield vscode.languages.registerDocumentRangeFormattingEditProvider(
+    constants.LANGUAGE_ID,
+    new RobotsTxtDocumentRangeFormattingEditProvider(),
+  );
+
+  yield vscode.languages.registerOnTypeFormattingEditProvider(
+    constants.LANGUAGE_ID,
+    new RobotsTxtOnTypeFormattingEditProvider(),
+    "\n",
   );
 
   // Register the diagnostic collection updater
