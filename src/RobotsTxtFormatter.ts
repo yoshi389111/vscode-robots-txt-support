@@ -12,7 +12,7 @@ export function formatRange(
 ): vscode.TextEdit[] {
   const result: vscode.TextEdit[] = [];
 
-  if (0 < document.lineCount) {
+  if (0 < document.lineCount && range.end.line >= document.lineCount - 1) {
     const lastLine = document.lineAt(document.lineCount - 1);
     if (
       lastLine.range.isEqual(lastLine.rangeIncludingLineBreak) &&
