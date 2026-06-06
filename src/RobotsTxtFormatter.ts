@@ -75,7 +75,7 @@ export function formatRange(
         result.push(deleteLine(lineText));
         continue;
       } else if (nextState === "global") {
-        result.push(insertEmptyLine(lineNo + 1));
+        result.push(insertEmptyLine(document, lineNo + 1));
         state = nextState;
       } else if (nextState === "user-agent") {
         state = nextState;
@@ -86,7 +86,7 @@ export function formatRange(
         state = nextState;
         continue;
       } else if (nextState === "in-user-agent" || nextState === "user-agent") {
-        result.push(insertEmptyLine(lineNo + 1));
+        result.push(insertEmptyLine(document, lineNo + 1));
         state = nextState;
       }
     } else if (state === "user-agent") {
@@ -95,7 +95,7 @@ export function formatRange(
         state = nextState;
         continue;
       } else if (nextState === "in-user-agent" || nextState === "global") {
-        result.push(insertEmptyLine(lineNo + 1));
+        result.push(insertEmptyLine(document, lineNo + 1));
         state = nextState;
       }
     }
@@ -182,7 +182,11 @@ function deleteLine(lineText: vscode.TextLine): vscode.TextEdit {
   return vscode.TextEdit.delete(lineText.rangeIncludingLineBreak);
 }
 
-function insertEmptyLine(lineNo: number): vscode.TextEdit {
+function insertEmptyLine(
+  document: vscode.TextDocument,
+  lineNo: number,
+): vscode.TextEdit {
   const position = new vscode.Position(lineNo, 0);
-  return vscode.TextEdit.insert(position, "\n");
+  const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
+  return vscode.TextEdit.insert(position, eol);
 }
