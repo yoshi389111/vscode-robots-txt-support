@@ -4,6 +4,7 @@ import { DelayExecutor } from "./utils/DelayExecutor";
 
 export class RobotsTxtRegionDecorator implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
+  private readonly delayExecutor = new DelayExecutor();
   private readonly disallowedDecorationType =
     vscode.window.createTextEditorDecorationType({
       opacity: "0.7",
@@ -13,10 +14,8 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
     // Register the decoration type for disallowed paths
     this.disposables.push(this.disallowedDecorationType);
 
-    const delayExecutor = new DelayExecutor();
-
     const updateDecorations = (editor: vscode.TextEditor) => {
-      delayExecutor.execute(() => this.updateDecorations(editor), 100);
+      this.delayExecutor.execute(() => this.updateDecorations(editor), 100);
     };
 
     vscode.window.onDidChangeTextEditorSelection(
