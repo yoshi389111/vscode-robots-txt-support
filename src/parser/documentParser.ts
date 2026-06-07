@@ -27,8 +27,8 @@ export interface AstGroup {
   rules: AstDirective[];
   startLine: number;
   endLine: number;
-  /** Indicates whether the group has at least one rule */
-  hasRule: boolean;
+  /** Indicates whether the group has at least one directive */
+  hasDirectives: boolean;
 }
 
 /**
@@ -76,7 +76,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
     };
 
     if (type === "user-agent") {
-      if (currentGroup === astRoot.outside || currentGroup.hasRule) {
+      if (currentGroup === astRoot.outside || currentGroup.hasDirectives) {
         currentGroup = createAstGroup();
         astRoot.groups.push(currentGroup);
         currentGroup.startLine = lineNo;
@@ -86,7 +86,7 @@ export function parseRobotsTxt(document: vscode.TextDocument): AstRoot {
       continue;
     }
 
-    currentGroup.hasRule = true;
+    currentGroup.hasDirectives = true;
     if (directiveInfo && directiveInfo.scope === "global") {
       // known global scoped directive
       astRoot.globals.push(astDirective);
@@ -109,6 +109,6 @@ function createAstGroup(): AstGroup {
     rules: [],
     startLine: 0,
     endLine: 0,
-    hasRule: false,
+    hasDirectives: false,
   };
 }
