@@ -103,7 +103,7 @@ export const DIAGNOSTIC_LOOKUP = {
     code: "RBT113",
     severity: vscode.DiagnosticSeverity.Information,
     message: (arg: string) =>
-      vscode.l10n.t(`Unknown directive. Did you mean {0}?`, arg),
+      vscode.l10n.t("Unknown directive. Did you mean '{0}'?", arg),
   },
 
   URL_INVALID: {
