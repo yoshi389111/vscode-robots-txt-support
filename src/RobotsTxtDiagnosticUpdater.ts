@@ -389,11 +389,12 @@ export class RobotsTxtDiagnosticUpdater {
     this.diagnostics.push(diagnostic);
   }
 
-  /**
-   * Adds a diagnostic to the collection based on the provided diagnostic information and range.
-   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, message, and optional tag.
-   * @param range The range in the document where the diagnostic should be applied.
-   */
+/**
+ * Adds a diagnostic to the collection using `diagnosticInfo.message` formatted with `replacement`.
+ * @param diagnosticInfo The diagnostic metadata (code, severity, message, optional tag).
+ * @param range The range in the document where the diagnostic should be applied.
+ * @param replacement The replacement text inserted into the message (e.g. `{0}`).
+ */
   public addDiagnosticWithReplacement(
     diagnosticInfo: DiagnosticInfo,
     range: vscode.Range,
