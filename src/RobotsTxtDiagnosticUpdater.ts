@@ -86,7 +86,7 @@ export class RobotsTxtDiagnosticUpdater {
           this.addDiagnostic(
             DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW,
             DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.message(),
-            group.userAgents[0]!.name.range,
+            group.userAgents[group.userAgents.length - 1]!.name.range,
           );
         }
       }
