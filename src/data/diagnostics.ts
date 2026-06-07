@@ -96,6 +96,11 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Error,
     message: "Invalid URL encoding.",
   },
+  DIRECTIVE_UNKNOWN_SUGGESTION: {
+    code: "RBT113",
+    severity: vscode.DiagnosticSeverity.Information,
+    message: "Unknown directive. Did you mean '{0}'?",
+  },
 
   URL_INVALID: {
     code: "RBT501",

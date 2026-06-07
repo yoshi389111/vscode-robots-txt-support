@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getLogger } from "./utils/logger";
 import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 
@@ -99,6 +100,9 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
           document,
           diagnostic,
         );
+
+      case DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION.code:
+        return this.createUnknownDirectiveFix(document, diagnostic);
 
       default:
         return [];
@@ -297,6 +301,25 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     );
 
     return [fixReplace, fixRemove];
+  }
+
+  private createUnknownDirectiveFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const directivePart = document.getText(diagnostic.range);
+    const suggestedDirective = getSimilarDirective(directivePart);
+    if (!suggestedDirective) {
+      return [];
+    }
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      suggestedDirective,
+      `Replace with '${suggestedDirective}'`,
+      true,
+    );
+    return [fix];
   }
 
   /**

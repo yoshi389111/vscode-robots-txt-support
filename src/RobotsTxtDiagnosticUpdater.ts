@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
@@ -156,7 +157,7 @@ export class RobotsTxtDiagnosticUpdater {
       this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_NAME_INVALID, name.range);
     } else if (!directiveInfo) {
       // The directive is unknown
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN, name.range);
+      this.checkUnknownDirective(type, name.range);
     }
 
     if (separator === undefined) {
@@ -178,6 +179,24 @@ export class RobotsTxtDiagnosticUpdater {
     const maxParams = Math.min(directiveInfo.params.length, params.length);
     for (let i = 0; i < maxParams; i++) {
       this.checkParameter(directiveInfo.params[i]!, params[i]!);
+    }
+  }
+
+  private checkUnknownDirective(
+    directiveType: string,
+    range: vscode.Range,
+  ): void {
+    const similarDirective = getSimilarDirective(directiveType);
+    if (similarDirective) {
+      // The directive is similar to a known directive, suggesting a possible typo
+      this.addDiagnosticWithReplacement(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION,
+        range,
+        similarDirective,
+      );
+    } else {
+      // The directive is unknown
+      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN, range);
     }
   }
 
@@ -359,6 +378,31 @@ export class RobotsTxtDiagnosticUpdater {
   ): void {
     const diagnostic: vscode.Diagnostic = {
       message: diagnosticInfo.message,
+      range,
+      severity: diagnosticInfo.severity,
+      code: diagnosticInfo.code,
+      source: constants.EXTENSION_DISPLAY_NAME,
+    };
+    if (diagnosticInfo.tag) {
+      diagnostic.tags = [diagnosticInfo.tag];
+    }
+    this.diagnostics.push(diagnostic);
+  }
+
+  /**
+   * Adds a diagnostic to the collection using `diagnosticInfo.message` formatted with `replacement`.
+   * @param diagnosticInfo The diagnostic metadata (code, severity, message, optional tag).
+   * @param range The range in the document where the diagnostic should be applied.
+   * @param replacement The replacement text inserted into the message (e.g. `{0}`).
+   */
+  public addDiagnosticWithReplacement(
+    diagnosticInfo: DiagnosticInfo,
+    range: vscode.Range,
+    replacement: string,
+  ): void {
+    const message = vscode.l10n.t(diagnosticInfo.message, replacement);
+    const diagnostic: vscode.Diagnostic = {
+      message,
       range,
       severity: diagnosticInfo.severity,
       code: diagnosticInfo.code,
