@@ -128,7 +128,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       cleanedString,
-      this.getMessageRemoveUnnecessary("0"),
+      vscode.l10n.t("Remove leading zeros"),
     );
 
     return [fix];
