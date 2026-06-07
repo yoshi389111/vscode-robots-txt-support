@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { DelayExecutor } from "./utils/DelayExecutor";
+import * as constants from "./data/constants";
 
 export class RobotsTxtRegionDecorator implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
@@ -53,7 +54,7 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
 
   private async updateDecorations(editor: vscode.TextEditor): Promise<void> {
     const document = editor.document;
-    if (document.languageId !== "robots-txt") {
+    if (document.languageId !== constants.LANGUAGE_ID) {
       editor.setDecorations(this.disallowedDecorationType, []);
       return;
     }
