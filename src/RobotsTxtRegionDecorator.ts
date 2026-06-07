@@ -93,6 +93,7 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
   }
 
   public dispose(): void {
+    this.delayExecutor.cancel();
     this.disposables.forEach((d) => d.dispose());
     this.disposables.length = 0;
   }
