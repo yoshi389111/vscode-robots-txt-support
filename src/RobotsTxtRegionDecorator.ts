@@ -54,7 +54,15 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
 
   private async updateDecorations(editor: vscode.TextEditor): Promise<void> {
     const document = editor.document;
-    const ast = await getAst(document);
+    if (document.languageId !== "robots-txt") {
+      editor.setDecorations(this.disallowedDecorationType, []);
+      return;
+    }
+
+    const ast = await getAst(document).catch((_error) => {
+      editor.setDecorations(this.disallowedDecorationType, []);
+      return undefined;
+    });
     if (!ast) {
       return;
     }
