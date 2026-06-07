@@ -10,6 +10,7 @@ import { RobotsTxtDocumentFormattingEditProvider } from "./RobotsTxtDocumentForm
 import { RobotsTxtDocumentRangeFormattingEditProvider } from "./RobotsTxtDocumentRangeFormattingEditProvider";
 import { RobotsTxtOnTypeFormattingEditProvider } from "./RobotsTxtOnTypeFormattingEditProvider";
 import { initialize as initializeRobotsTxtAstAsyncCache } from "./RobotsTxtAstAsyncCache";
+import { RobotsTxtRegionDecorator } from "./RobotsTxtRegionDecorator";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
@@ -101,6 +102,8 @@ function* initializeExtension(
     new RobotsTxtOnTypeFormattingEditProvider(),
     "\n",
   );
+
+  yield new RobotsTxtRegionDecorator();
 
   // Register the diagnostic collection updater
   const diagnostics = vscode.languages.createDiagnosticCollection(
