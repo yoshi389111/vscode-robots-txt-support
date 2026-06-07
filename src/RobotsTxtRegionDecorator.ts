@@ -78,13 +78,6 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
           );
           disallowedRegions.push({ range });
         }
-        // {
-        //   const range = new vscode.Range(
-        //     new vscode.Position(group.startLine, 0),
-        //     new vscode.Position(group.endLine, 0),
-        //   );
-        //   disallowedRegions.push({ range });
-        // }
         break;
       }
     }
