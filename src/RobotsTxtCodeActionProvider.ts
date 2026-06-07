@@ -104,6 +104,9 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       case DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION.code:
         return this.createUnknownDirectiveFix(document, diagnostic);
 
+      case DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.code:
+        return this.createGroupMissingAllowDisallowFix(document, diagnostic);
+
       default:
         return [];
     }
@@ -317,9 +320,34 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       diagnostic,
       suggestedDirective,
       this.getMessageReplaceWith(suggestedDirective),
-      true,
     );
     return [fix];
+  }
+
+  /**
+   * Creates code actions to insert missing 'Allow' and 'Disallow' directives in a group that has no rules.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the issue.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
+   */
+  private createGroupMissingAllowDisallowFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const fixDisallow = this.createInsertNextLineFix(
+      document,
+      diagnostic,
+      "Disallow: ",
+      this.getMessageInsertDirective("Disallow:"),
+    );
+    const fixAllow = this.createInsertNextLineFix(
+      document,
+      diagnostic,
+      "Allow: ",
+      this.getMessageInsertDirective("Allow:"),
+      false,
+    );
+    return [fixDisallow, fixAllow];
   }
 
   /**
@@ -341,6 +369,33 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     const fix = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
     fix.edit.replace(document.uri, diagnostic.range, newText);
+    fix.diagnostics = [diagnostic];
+    fix.isPreferred = isPreferred;
+    return fix;
+  }
+
+  /**
+   * Helper method to create a code action that inserts new text at the next line after the diagnostic.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic for which to create the code action.
+   * @param newText The new text to insert at the next line after the diagnostic.
+   * @param title The title of the code action.
+   * @param isPreferred Whether the code action is preferred.
+   * @returns A code action representing the quick fix.
+   */
+  private createInsertNextLineFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+    newText: string,
+    title: string,
+    isPreferred: boolean = true,
+  ): vscode.CodeAction {
+    const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
+    const message = `${eol}${newText}`;
+    const lineRange = document.lineAt(diagnostic.range.end).range;
+    const fix = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
+    fix.edit = new vscode.WorkspaceEdit();
+    fix.edit.insert(document.uri, lineRange.end, message);
     fix.diagnostics = [diagnostic];
     fix.isPreferred = isPreferred;
     return fix;
@@ -382,5 +437,9 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
   private getMessageEncodeInvalid(value: string): string {
     return vscode.l10n.t("Encode invalid '{0}' characters", value);
+  }
+
+  private getMessageInsertDirective(directive: string): string {
+    return vscode.l10n.t("Insert '{0}' directive", directive);
   }
 }
