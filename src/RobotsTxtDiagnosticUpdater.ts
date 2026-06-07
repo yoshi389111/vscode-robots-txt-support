@@ -63,6 +63,7 @@ export class RobotsTxtDiagnosticUpdater {
       for (const astDirective of astRoot.outside.rules) {
         this.addDiagnostic(
           DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE,
+          DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE.message(),
           astDirective.name.range,
         );
         this.checkDirective(astDirective);
@@ -84,6 +85,7 @@ export class RobotsTxtDiagnosticUpdater {
           // The group does not contain allow/disallow directives
           this.addDiagnostic(
             DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW,
+            DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.message(),
             group.userAgents[0]!.name.range,
           );
         }
@@ -116,6 +118,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The file name is not 'robots.txt'
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.FILENAME_INVALID,
+        DIAGNOSTIC_LOOKUP.FILENAME_INVALID.message(),
         new vscode.Range(0, 0, 0, 0),
       );
     }
@@ -124,12 +127,14 @@ export class RobotsTxtDiagnosticUpdater {
       // The file contains a UTF-8 BOM
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.ENCODING_UTF8_BOM,
+        DIAGNOSTIC_LOOKUP.ENCODING_UTF8_BOM.message(),
         new vscode.Range(0, 0, 0, 0),
       );
     } else if (document.encoding !== "utf8") {
       // The file encoding is not UTF-8
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.ENCODING_NOT_UTF8,
+        DIAGNOSTIC_LOOKUP.ENCODING_NOT_UTF8.message(),
         new vscode.Range(0, 0, 0, 0),
       );
     }
@@ -139,6 +144,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The file exceeds the recommended size limit of 500 KiB
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.FILESIZE_LARGE,
+        DIAGNOSTIC_LOOKUP.FILESIZE_LARGE.message(),
         new vscode.Range(0, 0, 0, 0),
       );
     }
@@ -154,7 +160,11 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (!REGEX_DIRECTIVE_NAME.test(type)) {
       // The directive name is invalid
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_NAME_INVALID, name.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_NAME_INVALID,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_NAME_INVALID.message(),
+        name.range,
+      );
     } else if (!directiveInfo) {
       // The directive is unknown
       this.checkUnknownDirective(type, name.range);
@@ -162,7 +172,11 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (separator === undefined) {
       // The directive is missing a colon
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON, name.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_MISSING_COLON.message(),
+        name.range,
+      );
       return;
     }
 
@@ -173,7 +187,11 @@ export class RobotsTxtDiagnosticUpdater {
 
     if (directiveInfo.isDeprecated) {
       // The directive is deprecated
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_DEPRECATED, name.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_DEPRECATED,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_DEPRECATED.message(),
+        name.range,
+      );
     }
 
     const maxParams = Math.min(directiveInfo.params.length, params.length);
@@ -189,14 +207,20 @@ export class RobotsTxtDiagnosticUpdater {
     const similarDirective = getSimilarDirective(directiveType);
     if (similarDirective) {
       // The directive is similar to a known directive, suggesting a possible typo
-      this.addDiagnosticWithReplacement(
+      this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION.message(
+          similarDirective,
+        ),
         range,
-        similarDirective,
       );
     } else {
       // The directive is unknown
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN, range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN.message(),
+        range,
+      );
     }
   }
 
@@ -241,6 +265,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The product token is invalid
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PRODUCT_TOKEN_INVALID,
+        DIAGNOSTIC_LOOKUP.PRODUCT_TOKEN_INVALID.message(),
         productToken.range,
       );
     }
@@ -258,12 +283,14 @@ export class RobotsTxtDiagnosticUpdater {
       // The path pattern contains unencoded characters that should be URL-encoded
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER.message(),
         paramToken.range,
       );
     } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
       // The path pattern contains invalid URL encoding
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.message(),
         paramToken.range,
       );
     }
@@ -271,6 +298,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The path pattern does not start with a slash
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_NOT_START_SLASH,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_NOT_START_SLASH.message(),
         paramToken.range,
       );
     }
@@ -278,6 +306,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The '$' character is only allowed at the end of the path pattern
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOLLAR,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOLLAR.message(),
         paramToken.range,
       );
     }
@@ -285,6 +314,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The wildcard is not necessary at the end of the path pattern
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_UNNECESSARY_WILDCARD,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_UNNECESSARY_WILDCARD.message(),
         paramToken.range,
       );
     }
@@ -292,6 +322,7 @@ export class RobotsTxtDiagnosticUpdater {
       // The '**' pattern is not necessary (use a single '*')
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK.message(),
         paramToken.range,
       );
     }
@@ -304,7 +335,11 @@ export class RobotsTxtDiagnosticUpdater {
   private checkParamUrl(urlToken: Span): void {
     if (!this.isValidUri(urlToken.text)) {
       // The directive value is not a valid URL
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.URL_INVALID, urlToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.URL_INVALID,
+        DIAGNOSTIC_LOOKUP.URL_INVALID.message(),
+        urlToken.range,
+      );
     }
   }
 
@@ -315,12 +350,17 @@ export class RobotsTxtDiagnosticUpdater {
   private checkParamNumeric(paramToken: Span): void {
     if (!REGEX_NUMERIC.test(paramToken.text)) {
       // The directive value is not a numeric
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.NOT_NUMERIC, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.NOT_NUMERIC,
+        DIAGNOSTIC_LOOKUP.NOT_NUMERIC.message(),
+        paramToken.range,
+      );
     }
     if (REGEX_LEADING_ZEROS.test(paramToken.text)) {
       // The directive value has leading zeros
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.NUMBER_LEADING_ZERO,
+        DIAGNOSTIC_LOOKUP.NUMBER_LEADING_ZERO.message(),
         paramToken.range,
       );
     }
@@ -333,7 +373,11 @@ export class RobotsTxtDiagnosticUpdater {
   private checkParamQueryParams(paramToken: Span): void {
     if (!REGEX_QUERY_PARAMS.test(paramToken.text)) {
       // The directive value is invalid (query parameters should be in the format of 'key1&key2&key3')
-      this.addDiagnostic(DIAGNOSTIC_LOOKUP.PARAM_INVALID, paramToken.range);
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.PARAM_INVALID,
+        DIAGNOSTIC_LOOKUP.PARAM_INVALID.message(),
+        paramToken.range,
+      );
     }
   }
 
@@ -369,38 +413,15 @@ export class RobotsTxtDiagnosticUpdater {
 
   /**
    * Adds a diagnostic to the collection based on the provided diagnostic information and range.
-   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, message, and optional tag.
+   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, and optional tag.
+   * @param message The message for the diagnostic.
    * @param range The range in the document where the diagnostic should be applied.
    */
   public addDiagnostic(
     diagnosticInfo: DiagnosticInfo,
+    message: string,
     range: vscode.Range,
   ): void {
-    const diagnostic: vscode.Diagnostic = {
-      message: diagnosticInfo.message,
-      range,
-      severity: diagnosticInfo.severity,
-      code: diagnosticInfo.code,
-      source: constants.EXTENSION_DISPLAY_NAME,
-    };
-    if (diagnosticInfo.tag) {
-      diagnostic.tags = [diagnosticInfo.tag];
-    }
-    this.diagnostics.push(diagnostic);
-  }
-
-  /**
-   * Adds a diagnostic to the collection using `diagnosticInfo.message` formatted with `replacement`.
-   * @param diagnosticInfo The diagnostic metadata (code, severity, message, optional tag).
-   * @param range The range in the document where the diagnostic should be applied.
-   * @param replacement The replacement text inserted into the message (e.g. `{0}`).
-   */
-  public addDiagnosticWithReplacement(
-    diagnosticInfo: DiagnosticInfo,
-    range: vscode.Range,
-    replacement: string,
-  ): void {
-    const message = vscode.l10n.t(diagnosticInfo.message, replacement);
     const diagnostic: vscode.Diagnostic = {
       message,
       range,

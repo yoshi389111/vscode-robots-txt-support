@@ -44,7 +44,7 @@ export class RobotsTxtCodelensProvider
 
     const quickPickItems: RobotsTxtQuickPickItem[] = [
       {
-        label: "Description",
+        label: vscode.l10n.t("Description"),
         detail: crawlerInfo.description,
         iconPath: new vscode.ThemeIcon("info"),
       },
@@ -52,7 +52,7 @@ export class RobotsTxtCodelensProvider
 
     if (crawlerInfo.notice) {
       quickPickItems.push({
-        label: "Notice",
+        label: vscode.l10n.t("Notice"),
         detail: crawlerInfo.notice,
         iconPath: new vscode.ThemeIcon("warning"),
       });
@@ -60,16 +60,18 @@ export class RobotsTxtCodelensProvider
 
     if (crawlerInfo.url) {
       quickPickItems.push({
-        label: "Open Documentation",
+        label: vscode.l10n.t("Open Documentation"),
         description: crawlerInfo.url,
-        detail: "Click to open the crawler's documentation in browser",
+        detail: vscode.l10n.t(
+          "Click to open the crawler's documentation in the browser",
+        ),
         iconPath: new vscode.ThemeIcon("book"),
         openUrl: crawlerInfo.url,
       });
     }
 
     const result = await vscode.window.showQuickPick(quickPickItems, {
-      placeHolder: `Information about ${crawlerInfo.name}`,
+      placeHolder: vscode.l10n.t("Information about {0}", crawlerInfo.name),
     });
 
     if (result?.openUrl) {
