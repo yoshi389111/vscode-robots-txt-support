@@ -82,7 +82,7 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
         if (group.endLine < document.lineCount - 1) {
           const range = new vscode.Range(
             new vscode.Position(group.endLine + 1, 0),
-            new vscode.Position(document.lineCount - 1, 0),
+            document.lineAt(document.lineCount - 1).range.end,
           );
           disallowedRegions.push({ range });
         }
