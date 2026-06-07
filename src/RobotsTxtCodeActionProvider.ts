@@ -338,13 +338,13 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       "Disallow: ",
-      this.getMessageInsertDirective("Disallow: "),
+      this.getMessageInsertDirective("Disallow:"),
     );
     const fixAllow = this.createInsertNextLineFix(
       document,
       diagnostic,
       "Allow: ",
-      this.getMessageInsertDirective("Allow: "),
+      this.getMessageInsertDirective("Allow:"),
       false,
     );
     return [fixDisallow, fixAllow];
