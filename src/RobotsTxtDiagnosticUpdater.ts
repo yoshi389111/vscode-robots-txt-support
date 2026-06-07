@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { parseRobotsTxt, AstDirective } from "./parser/documentParser";
+import { getAst } from "./RobotsTxtAstAsyncCache";
+import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
 import { getLogger } from "./utils/logger";
 import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
@@ -56,7 +57,7 @@ export class RobotsTxtDiagnosticUpdater {
       await this.checkFile(document);
 
       // Parse the robots.txt file
-      const astRoot = parseRobotsTxt(document);
+      const astRoot = await getAst(document);
 
       for (const astDirective of astRoot.outside.rules) {
         this.addDiagnostic(

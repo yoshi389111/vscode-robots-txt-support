@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
-import { parseRobotsTxt, AstDirective } from "./parser/documentParser";
+import { getAst } from "./RobotsTxtAstAsyncCache";
+import { AstDirective } from "./parser/documentParser";
 import { getLogger } from "./utils/logger";
 import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 
@@ -87,16 +88,16 @@ export class RobotsTxtCodelensProvider
    * Provides code lenses for user agent directives in the robots.txt document.
    * @param document The text document containing the robots.txt content.
    * @param _token A cancellation token.
-   * @returns An array of code lenses or undefined if an error occurs.
+   * @returns An array of code lenses. If an error occurs, returns an empty array.
    */
-  public provideCodeLenses(
+  public async provideCodeLenses(
     document: vscode.TextDocument,
     _token: vscode.CancellationToken,
-  ): vscode.ProviderResult<vscode.CodeLens[]> {
+  ): Promise<vscode.CodeLens[]> {
     this.log.trace("Providing code lenses", document.fileName);
     try {
       const codeLenses: vscode.CodeLens[] = [];
-      const ast = parseRobotsTxt(document);
+      const ast = await getAst(document);
       for (const group of ast.groups) {
         for (const userAgent of group.userAgents) {
           const codelens = this.codelensCrawler(userAgent);
@@ -108,7 +109,7 @@ export class RobotsTxtCodelensProvider
       return codeLenses;
     } catch (error) {
       this.log.error("Error providing code lenses", error);
-      return undefined;
+      return [];
     } finally {
       this.log.trace("Finished providing code lenses");
     }
