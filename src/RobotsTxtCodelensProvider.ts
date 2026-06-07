@@ -88,7 +88,7 @@ export class RobotsTxtCodelensProvider
    * Provides code lenses for user agent directives in the robots.txt document.
    * @param document The text document containing the robots.txt content.
    * @param _token A cancellation token.
-   * @returns An array of code lenses or undefined if an error occurs.
+   * @returns An array of code lenses. If an error occurs, returns an empty array.
    */
   public async provideCodeLenses(
     document: vscode.TextDocument,
