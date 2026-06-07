@@ -128,7 +128,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       cleanedString,
-      "Remove leading zeros",
+      this.getMessageRemoveUnnecessary("0"),
     );
 
     return [fix];
@@ -150,7 +150,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       insertedString,
-      "Insert missing ':'",
+      vscode.l10n.t("Append missing ':'"),
     );
 
     return [fix];
@@ -172,7 +172,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       insertedString,
-      "Insert leading '/'",
+      vscode.l10n.t("Insert leading '/'"),
     );
 
     return [fix];
@@ -197,7 +197,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       cleanedString,
-      "Replace '**' with '*'",
+      this.getMessageReplaceWith("*"),
     );
 
     return [fix];
@@ -222,7 +222,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       cleanedString,
-      "Remove unnecessary '*'",
+      this.getMessageRemoveUnnecessary("*"),
     );
 
     return [fix];
@@ -249,7 +249,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       replacedString,
-      "Encode invalid '$' characters",
+      this.getMessageEncodeInvalid("$"),
     );
 
     const removedString = targetString.replace(
@@ -260,7 +260,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       removedString,
-      "Remove invalid '$' characters",
+      this.getMessageRemoveInvalid("$"),
       false,
     );
 
@@ -288,7 +288,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       replacedString,
-      "Encode invalid '%' characters",
+      this.getMessageEncodeInvalid("%"),
     );
 
     const removedString = targetString.replace(REGEX_INVALID_URL_ENCODING, "");
@@ -296,7 +296,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       removedString,
-      "Remove invalid '%' characters",
+      this.getMessageRemoveInvalid("%"),
       false,
     );
 
@@ -316,7 +316,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       document,
       diagnostic,
       suggestedDirective,
-      `Replace with '${suggestedDirective}'`,
+      this.getMessageReplaceWith(suggestedDirective),
       true,
     );
     return [fix];
@@ -366,5 +366,21 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     _document: vscode.TextDocument,
   ): vscode.CodeAction[] {
     return []; // TODO
+  }
+
+  private getMessageReplaceWith(value: string): string {
+    return vscode.l10n.t("Replace with '{0}'", value);
+  }
+
+  private getMessageRemoveInvalid(value: string): string {
+    return vscode.l10n.t("Remove invalid '{0}'", value);
+  }
+
+  private getMessageRemoveUnnecessary(value: string): string {
+    return vscode.l10n.t("Remove unnecessary '{0}'", value);
+  }
+
+  private getMessageEncodeInvalid(value: string): string {
+    return vscode.l10n.t("Encode invalid '{0}' characters", value);
   }
 }
