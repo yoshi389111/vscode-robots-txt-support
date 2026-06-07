@@ -8,8 +8,8 @@ const cache = new VersionAsyncCache<AstRoot>((document) =>
 );
 
 /**
- * Initializes the `RobotsTxtAstAsyncCache` by setting up the necessary event listeners for cache invalidation.
- * @returns A disposable that can be used to clean up the event listeners when the cache is no longer needed.
+ * Returns a disposable for the AST cache (created eagerly at module load time).
+ * @returns Add this to `context.subscriptions` so cache listeners are disposed on deactivation.
  */
 export function initialize(): vscode.Disposable {
   return cache;
