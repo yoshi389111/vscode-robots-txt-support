@@ -40,7 +40,7 @@ export interface DirectiveInfo {
   hiddenCompletion: boolean;
   /** Whether this directive is deprecated and should be indicated as such in the UI. */
   isDeprecated: boolean;
-/** The scope of this directive, indicating whether it applies globally or within a User-agent group. */
+  /** The scope of this directive, indicating whether it applies globally or within a User-agent group. */
   scope: "global" | "in-user-agent";
 }
 

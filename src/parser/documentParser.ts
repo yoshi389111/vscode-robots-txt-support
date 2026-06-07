@@ -27,7 +27,7 @@ export interface AstGroup {
   rules: AstDirective[];
   startLine: number;
   endLine: number;
-/** Indicates whether the group has at least one directive other than `User-agent` */
+  /** Indicates whether the group has at least one directive other than `User-agent` */
   hasDirectives: boolean;
 }
 
