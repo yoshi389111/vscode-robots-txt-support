@@ -9,9 +9,7 @@ const SIMILARITY_THRESHOLD = 2;
  * @param directivePart The directive part to compare.
  * @returns The name of a similar known directive if found within the similarity threshold, otherwise `undefined`.
  */
-export function getSimilarDirectives(
-  directivePart: string,
-): string | undefined {
+export function getSimilarDirective(directivePart: string): string | undefined {
   const inputName = normalizeString(directivePart);
   let bestMatch: { name: string; distance: number } | null = null;
   for (const info of Object.values(DIRECTIVE_LOOKUP)) {

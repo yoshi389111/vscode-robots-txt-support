@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { getSimilarDirectives } from "./RobotsTxtSimilarDirectives";
+import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
@@ -186,7 +186,7 @@ export class RobotsTxtDiagnosticUpdater {
     directiveType: string,
     range: vscode.Range,
   ): void {
-    const similarDirective = getSimilarDirectives(directiveType);
+    const similarDirective = getSimilarDirective(directiveType);
     if (similarDirective) {
       // The directive is similar to a known directive, suggesting a possible typo
       this.addDiagnosticWithReplacement(
@@ -389,12 +389,12 @@ export class RobotsTxtDiagnosticUpdater {
     this.diagnostics.push(diagnostic);
   }
 
-/**
- * Adds a diagnostic to the collection using `diagnosticInfo.message` formatted with `replacement`.
- * @param diagnosticInfo The diagnostic metadata (code, severity, message, optional tag).
- * @param range The range in the document where the diagnostic should be applied.
- * @param replacement The replacement text inserted into the message (e.g. `{0}`).
- */
+  /**
+   * Adds a diagnostic to the collection using `diagnosticInfo.message` formatted with `replacement`.
+   * @param diagnosticInfo The diagnostic metadata (code, severity, message, optional tag).
+   * @param range The range in the document where the diagnostic should be applied.
+   * @param replacement The replacement text inserted into the message (e.g. `{0}`).
+   */
   public addDiagnosticWithReplacement(
     diagnosticInfo: DiagnosticInfo,
     range: vscode.Range,

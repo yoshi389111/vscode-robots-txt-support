@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getSimilarDirectives } from "./RobotsTxtSimilarDirectives";
+import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getLogger } from "./utils/logger";
 import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 
@@ -308,7 +308,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction[] {
     const directivePart = document.getText(diagnostic.range);
-    const suggestedDirective = getSimilarDirectives(directivePart);
+    const suggestedDirective = getSimilarDirective(directivePart);
     if (!suggestedDirective) {
       return [];
     }
