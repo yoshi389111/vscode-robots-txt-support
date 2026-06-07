@@ -63,7 +63,7 @@ export class RobotsTxtCodelensProvider
         label: vscode.l10n.t("Open Documentation"),
         description: crawlerInfo.url,
         detail: vscode.l10n.t(
-          "Click to open the crawler's documentation in browser",
+          "Click to open the crawler's documentation in the browser",
         ),
         iconPath: new vscode.ThemeIcon("book"),
         openUrl: crawlerInfo.url,
