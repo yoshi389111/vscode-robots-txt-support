@@ -9,6 +9,7 @@ import { RobotsTxtCodelensProvider } from "./RobotsTxtCodelensProvider";
 import { RobotsTxtDocumentFormattingEditProvider } from "./RobotsTxtDocumentFormattingEditProvider";
 import { RobotsTxtDocumentRangeFormattingEditProvider } from "./RobotsTxtDocumentRangeFormattingEditProvider";
 import { RobotsTxtOnTypeFormattingEditProvider } from "./RobotsTxtOnTypeFormattingEditProvider";
+import { initialize as initializeRobotsTxtAstAsyncCache } from "./RobotsTxtAstAsyncCache";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
 import * as constants from "./data/constants";
@@ -39,6 +40,9 @@ function* initializeExtension(
   const log = initLogger(constants.EXTENSION_DISPLAY_NAME);
   yield log;
   log.trace("Extension activated", context.extension.id);
+
+  // Initialize the AST cache for robots.txt files
+  yield initializeRobotsTxtAstAsyncCache();
 
   // Register the completion item provider
   yield vscode.languages.registerCompletionItemProvider(
