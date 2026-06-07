@@ -11,13 +11,15 @@ export class VersionAsyncCache<V> implements vscode.Disposable {
   /** An array of disposables for cleaning up resources when the cache is disposed. */
   private readonly disposables: vscode.Disposable[] = [];
   /** A function that creates the data for a given document. */
-  private readonly createDataAsync: (document: vscode.TextDocument) => V;
+  private readonly createDataAsync: (document: vscode.TextDocument) => Thenable<V> | V;
 
   /**
    * Creates a new VersionAsyncCache.
    * @param createDataAsync A function that creates the data for a given document.
    */
-  constructor(createDataAsync: (document: vscode.TextDocument) => V) {
+  constructor(
+    createDataAsync: (document: vscode.TextDocument) => Thenable<V> | V,
+  ) {
     this.cache = new Map();
     this.createDataAsync = createDataAsync;
 
