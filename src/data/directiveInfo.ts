@@ -40,8 +40,8 @@ export interface DirectiveInfo {
   hiddenCompletion: boolean;
   /** Whether this directive is deprecated and should be indicated as such in the UI. */
   isDeprecated: boolean;
-  /** The scope of this directive, indicating whether it applies globally or to specific user-agents. */
-  scope: "global" | "user-agent";
+  /** The scope of this directive, indicating whether it applies globally or within a User-agent group. */
+  scope: "global" | "in-user-agent";
 }
 
 /**
@@ -91,7 +91,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: false,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   allow: {
@@ -115,7 +115,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: false,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   sitemap: {
@@ -164,7 +164,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: false,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   "clean-param": {
@@ -289,7 +289,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: true,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   "visit-time": {
@@ -310,7 +310,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: true,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   "robot-version": {
@@ -331,7 +331,7 @@ export const DIRECTIVE_LOOKUP: Readonly<Record<string, DirectiveInfo>> = {
     ],
     hiddenCompletion: true,
     isDeprecated: false,
-    scope: "user-agent",
+    scope: "in-user-agent",
   },
 
   comment: {
