@@ -3,6 +3,7 @@ import { formatLine } from "./RobotsTxtFormatter";
 import { parseLine } from "./parser/lineParser";
 import { getLogger } from "./utils/logger";
 
+/** Provides formatting edits after a specific character is typed in robots.txt documents. */
 export class RobotsTxtOnTypeFormattingEditProvider
   implements vscode.OnTypeFormattingEditProvider
 {

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { formatRange } from "./RobotsTxtFormatter";
 import { getLogger } from "./utils/logger";
 
+/** Provides formatting edits for robots.txt documents. */
 export class RobotsTxtDocumentFormattingEditProvider
   implements vscode.DocumentFormattingEditProvider
 {
@@ -22,11 +23,10 @@ export class RobotsTxtDocumentFormattingEditProvider
   ): vscode.ProviderResult<vscode.TextEdit[]> {
     this.log.trace("Providing document formatting edits", document.fileName);
     try {
-      const result = formatRange(
+      return formatRange(
         document,
         new vscode.Range(0, 0, document.lineCount - 1, 0),
       );
-      return result;
     } catch (error) {
       this.log.error("Error providing document formatting edits", error);
       return [];

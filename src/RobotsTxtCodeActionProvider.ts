@@ -13,6 +13,14 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
   };
 
+  /**
+   * Provides code actions for the given document and range based on the diagnostics present in the context.
+   * @param document The text document for which to provide code actions.
+   * @param _range The range for which to provide code actions.
+   * @param context The context containing diagnostics and other information for which to provide code actions.
+   * @param _token A cancellation token.
+   * @returns An array of code actions or commands to apply to the document.
+   */
   public provideCodeActions(
     document: vscode.TextDocument,
     _range: vscode.Range,
@@ -306,6 +314,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     return [fixReplace, fixRemove];
   }
 
+  /**
+   * Creates a code action to replace an unknown directive with a suggested valid directive based on similarity.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the issue.
+   * @returns An array of code actions representing quick fixes for the given diagnostic, or an empty array if no similar directive is found.
+   */
   private createUnknownDirectiveFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
@@ -423,22 +437,47 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     return []; // TODO
   }
 
+  /**
+   * Generates a user-friendly message for a code action that replaces an invalid directive with a suggested valid directive based on similarity.
+   * @param value The suggested valid directive to replace the invalid directive with.
+   * @returns A localized message string for the code action title.
+   */
   private getMessageReplaceWith(value: string): string {
     return vscode.l10n.t("Replace with '{0}'", value);
   }
 
+  /**
+   * Generates a user-friendly message for a code action that removes an invalid directive.
+   * @param value The invalid directive to be removed.
+   * @returns A localized message string for the code action title.
+   */
   private getMessageRemoveInvalid(value: string): string {
     return vscode.l10n.t("Remove invalid '{0}'", value);
   }
 
+  /**
+   * Generates a user-friendly message for a code action that removes an unnecessary directive.
+   * @param value The unnecessary directive to be removed.
+   * @returns A localized message string for the code action title.
+   */
   private getMessageRemoveUnnecessary(value: string): string {
     return vscode.l10n.t("Remove unnecessary '{0}'", value);
   }
 
+  /**
+   * Generates a user-friendly message for a code action that encodes invalid characters.
+   * @param value The invalid characters to be encoded.
+   * @returns A localized message string for the code action title.
+   */
   private getMessageEncodeInvalid(value: string): string {
     return vscode.l10n.t("Encode invalid '{0}' characters", value);
   }
 
+  /**
+   * Generates a user-friendly message for a code action that inserts a directive.
+   * @param directive The directive to be inserted.
+   * @returns A localized message string for the code action title.
+   */
   private getMessageInsertDirective(directive: string): string {
     return vscode.l10n.t("Insert '{0}' directive", directive);
   }

@@ -26,6 +26,7 @@ export class RobotsTxtCodelensProvider
   /** The list of registered disposables. */
   private readonly disposables: vscode.Disposable[] = [];
 
+  /** Initializes a new instance of the RobotsTxtCodelensProvider class. */
   constructor() {
     this.log.trace("RobotsTxtCodelensProvider initialized");
     const disposable = vscode.commands.registerCommand(
