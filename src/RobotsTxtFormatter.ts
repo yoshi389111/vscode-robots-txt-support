@@ -182,7 +182,18 @@ class TextEditList {
    * Sort the TextEdits by their position in the document.
    */
   sort(): void {
-    this.edits.sort((a, b) => a.range.start.line - b.range.start.line);
+    this.edits.sort((a, b) => {
+      if (a.range.start.line !== b.range.start.line) {
+        return a.range.start.line - b.range.start.line;
+      }
+      if (a.range.start.character !== b.range.start.character) {
+        return a.range.start.character - b.range.start.character;
+      }
+      if (a.range.end.line !== b.range.end.line) {
+        return b.range.end.line - a.range.end.line;
+      }
+      return b.range.end.character - a.range.end.character;
+    });
   }
 
   /**
