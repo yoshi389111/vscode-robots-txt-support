@@ -24,7 +24,7 @@ export function formatRange(
       lastLine.range.isEqual(lastLine.rangeIncludingLineBreak) &&
       lastLine.text.length !== 0
     ) {
-      // If the last line does not end with a EOL, add a EOL.
+      // If the last line does not end with an EOL, add an EOL.
       const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
       edits.add(vscode.TextEdit.insert(lastLine.range.end, eol));
     }
