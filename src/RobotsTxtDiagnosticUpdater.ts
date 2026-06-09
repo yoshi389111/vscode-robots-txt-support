@@ -9,30 +9,6 @@ import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
 import * as constants from "./data/constants";
 
-/** Regular expression to validate directive names. */
-const REGEX_DIRECTIVE_NAME = /^[a-zA-Z]([a-zA-Z0-9_-]*[a-zA-Z])?$/;
-
-/** Regular expression to validate product tokens. */
-const REGEX_PRODUCT_TOKEN = /^([a-zA-Z_-]+$|^\*)$/;
-
-/** Regular expression to validate encoded path patterns. */
-const REGEX_ENCODED_PATH = /^[-$%&*./0-9=?A-Z_a-z~]+$/;
-
-/** Regular expression to validate query parameters. (e.g. "param1&param2") */
-const REGEX_QUERY_PARAMS = /^\w+(\&\w+)*$/;
-
-/** Regular expression to validate numeric values. */
-const REGEX_NUMERIC = /^\d+$/;
-
-/** Regular expression to validate numeric values with leading zeros. */
-const REGEX_LEADING_ZEROS = /^0+\d+$/;
-
-/** Regular expression to validate URL encoding. */
-const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
-
-/** Recommended maximum file size. (500 KiB) */
-const FILE_SIZE_LIMIT = 500 * 1024;
-
 /** Updates diagnostic collection for `robots.txt` files. */
 export class RobotsTxtDiagnosticUpdater {
   /** The logger instance. */
@@ -139,6 +115,8 @@ export class RobotsTxtDiagnosticUpdater {
       );
     }
 
+    // Recommended maximum file size. (500 KiB)
+    const FILE_SIZE_LIMIT = 500 * 1024;
     const fileSize = await this.getFileSize(document);
     if (FILE_SIZE_LIMIT < fileSize) {
       // The file exceeds the recommended size limit of 500 KiB
@@ -155,6 +133,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param astDirective The AST node representing the directive to be checked.
    */
   private checkDirective(astDirective: AstDirective): void {
+    const REGEX_DIRECTIVE_NAME = /^[a-zA-Z]([a-zA-Z0-9_-]*[a-zA-Z])?$/;
     const { type, name, separator, params } = astDirective;
     const directiveInfo = DIRECTIVE_LOOKUP[type];
 
@@ -200,6 +179,11 @@ export class RobotsTxtDiagnosticUpdater {
     }
   }
 
+  /**
+   * Check if an unknown directive is a typo, determine a diagnostic message, and add it.
+   * @param directiveType The type of the directive to be checked.
+   * @param range The range in the document where the directive is located, used for adding diagnostics.
+   */
   private checkUnknownDirective(
     directiveType: string,
     range: vscode.Range,
@@ -261,6 +245,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param productToken The AST token representing the product token parameter to be checked.
    */
   private checkParamProductToken(productToken: Span): void {
+    const REGEX_PRODUCT_TOKEN = /^([a-zA-Z_-]+$|^\*)$/;
     if (!REGEX_PRODUCT_TOKEN.test(productToken.text)) {
       // The product token is invalid
       this.addDiagnostic(
@@ -276,6 +261,8 @@ export class RobotsTxtDiagnosticUpdater {
    * @param paramToken The AST token representing the path pattern parameter to be checked.
    */
   private checkParamPathPattern(paramToken: Span): void {
+    const REGEX_ENCODED_PATH = /^[-$%&*./0-9=?A-Z_a-z~]+$/;
+    const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
     if (isEmptySpan(paramToken)) {
       return;
     }
@@ -348,6 +335,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param paramToken The AST token representing the numeric parameter to be checked.
    */
   private checkParamNumeric(paramToken: Span): void {
+    const REGEX_NUMERIC = /^\d+$/;
     if (!REGEX_NUMERIC.test(paramToken.text)) {
       // The directive value is not a numeric
       this.addDiagnostic(
@@ -356,6 +344,7 @@ export class RobotsTxtDiagnosticUpdater {
         paramToken.range,
       );
     }
+    const REGEX_LEADING_ZEROS = /^0+\d+$/;
     if (REGEX_LEADING_ZEROS.test(paramToken.text)) {
       // The directive value has leading zeros
       this.addDiagnostic(
@@ -371,6 +360,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param paramToken The AST token representing the query parameters parameter to be checked.
    */
   private checkParamQueryParams(paramToken: Span): void {
+    const REGEX_QUERY_PARAMS = /^\w+(\&\w+)*$/;
     if (!REGEX_QUERY_PARAMS.test(paramToken.text)) {
       // The directive value is invalid (query parameters should be in the format of 'key1&key2&key3')
       this.addDiagnostic(

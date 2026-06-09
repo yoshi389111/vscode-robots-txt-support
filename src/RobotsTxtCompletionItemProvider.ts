@@ -325,7 +325,14 @@ export class RobotsTxtCompletionItemProvider
         return undefined;
       }
 
-      if (paramSpan.text.includes("*") || paramSpan.text.includes("$")) {
+      if (
+        paramSpan.text.includes("*") ||
+        paramSpan.text.includes("$") ||
+        paramSpan.text.includes("%") ||
+        paramSpan.text.includes("\\") ||
+        paramSpan.text.includes("//") ||
+        paramSpan.text.includes("/../")
+      ) {
         return undefined;
       }
 

@@ -1,6 +1,7 @@
 /**
  * Calculate the Optimal String Alignment Distance (OSA).
- * The OSA distance is a measure of the similarity between two strings, allowing for insertions, deletions, substitutions, and adjacent transpositions.
+ * The OSA distance is a measure of the similarity between two strings,
+ * allowing for insertions, deletions, substitutions, and adjacent transpositions.
  * It is a variant of the Levenshtein distance that also accounts for transpositions of adjacent characters.
  *
  * Reference: <https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance>
@@ -29,6 +30,7 @@ export function calculateEditDistance(a: string, b: string): number {
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
+      // cost of substitution
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
 
       dp[i]![j] = Math.min(

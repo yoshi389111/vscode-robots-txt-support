@@ -6,34 +6,46 @@ import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
 
 type State = "empty" | "comment" | "global" | "in-user-agent" | "user-agent";
 
+/**
+ * Format the given range in the document according to the following rules:
+ * @param document The document to format.
+ * @param range The range to format.
+ * @returns An array of TextEdits to apply to the document.
+ */
 export function formatRange(
   document: vscode.TextDocument,
   range: vscode.Range,
 ): vscode.TextEdit[] {
-  const result: vscode.TextEdit[] = [];
+  const edits = new TextEditList();
 
-  if (0 < document.lineCount && range.end.line >= document.lineCount - 1) {
+  if (0 < document.lineCount && document.lineCount - 1 <= range.end.line) {
     const lastLine = document.lineAt(document.lineCount - 1);
     if (
       lastLine.range.isEqual(lastLine.rangeIncludingLineBreak) &&
       lastLine.text.length !== 0
     ) {
+      // If the last line does not end with a EOL, add a EOL.
       const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
-      result.push(vscode.TextEdit.insert(lastLine.range.end, eol));
+      edits.add(vscode.TextEdit.insert(lastLine.range.end, eol));
     }
   }
 
+  // Check from the end line to the start line,
+  // because comments before a directive are considered as the description of the directive.
   let state: State = "empty";
   let pendingData: { emptyLine: vscode.TextLine; state: State } | null = null;
   for (let lineNo = range.end.line; lineNo >= range.start.line; lineNo--) {
     const lineText = document.lineAt(lineNo);
     const parsedLine = parseLine(lineText);
-    const nextState: State = determineState(parsedLine);
+    const nextState = determineState(parsedLine);
 
     if (state === "empty") {
       if (nextState === "empty") {
-        result.push(deleteLine(lineText));
+        // Delete consecutive empty lines.
+        edits.deleteLine(lineText);
         continue;
+      } else if (nextState === "comment") {
+        state = nextState;
       } else if (
         nextState === "global" ||
         nextState === "in-user-agent" ||
@@ -41,20 +53,23 @@ export function formatRange(
       ) {
         if (pendingData) {
           if (pendingData.state === nextState) {
-            result.push(deleteLine(pendingData.emptyLine));
-          } else if (pendingData.emptyLine.text.length !== 0) {
-            result.push(toEmptyLineEdit(pendingData.emptyLine));
+            edits.deleteLine(pendingData.emptyLine);
+          } else {
+            edits.truncateLine(pendingData.emptyLine);
           }
           pendingData = null;
         }
+        state = nextState;
       }
-      state = nextState;
     } else if (state === "comment") {
       if (nextState === "empty") {
-        if (pendingData && pendingData.emptyLine.text.length !== 0) {
-          result.push(toEmptyLineEdit(pendingData.emptyLine));
+        if (pendingData) {
+          edits.truncateLine(pendingData.emptyLine);
           pendingData = null;
         }
+        state = nextState;
+      } else if (nextState === "comment") {
+        // No state change.
       } else if (
         nextState === "global" ||
         nextState === "in-user-agent" ||
@@ -62,57 +77,128 @@ export function formatRange(
       ) {
         if (pendingData) {
           if (pendingData.state === nextState) {
-            result.push(deleteLine(pendingData.emptyLine));
-          } else if (pendingData.emptyLine.text.length !== 0) {
-            result.push(toEmptyLineEdit(pendingData.emptyLine));
+            edits.deleteLine(pendingData.emptyLine);
+          } else {
+            edits.truncateLine(pendingData.emptyLine);
           }
           pendingData = null;
         }
+        state = nextState;
       }
-      state = nextState;
     } else if (state === "in-user-agent") {
       if (nextState === "empty") {
-        result.push(deleteLine(lineText));
+        edits.deleteLine(lineText);
         continue;
+      } else if (nextState === "comment") {
+        // No state change.
       } else if (nextState === "global") {
-        result.push(insertEmptyLine(document, lineNo + 1));
+        edits.insertEmptyLine(document, lineNo + 1);
         state = nextState;
       } else if (nextState === "user-agent") {
         state = nextState;
       }
     } else if (state === "global") {
       if (nextState === "empty") {
-        pendingData = { emptyLine: lineText, state: state };
+        pendingData = { emptyLine: lineText, state };
         state = nextState;
         continue;
+      } else if (nextState === "comment") {
+        // No state change.
       } else if (nextState === "in-user-agent" || nextState === "user-agent") {
-        result.push(insertEmptyLine(document, lineNo + 1));
+        edits.insertEmptyLine(document, lineNo + 1);
         state = nextState;
       }
     } else if (state === "user-agent") {
       if (nextState === "empty") {
-        pendingData = { emptyLine: lineText, state: state };
+        pendingData = { emptyLine: lineText, state };
         state = nextState;
         continue;
+      } else if (nextState === "comment") {
+        // No state change.
       } else if (nextState === "in-user-agent" || nextState === "global") {
-        result.push(insertEmptyLine(document, lineNo + 1));
+        edits.insertEmptyLine(document, lineNo + 1);
         state = nextState;
       }
     }
 
     const formattedLine = formatLine(parsedLine);
     if (formattedLine !== lineText.text) {
-      result.push(vscode.TextEdit.replace(lineText.range, formattedLine));
+      edits.add(vscode.TextEdit.replace(lineText.range, formattedLine));
     }
   }
-  if (pendingData && pendingData.emptyLine.text.length !== 0) {
-    result.push(toEmptyLineEdit(pendingData.emptyLine));
+  if (pendingData) {
+    edits.truncateLine(pendingData.emptyLine);
   }
 
-  result.sort((a, b) => b.range.start.line - a.range.start.line);
-  return result;
+  edits.sort();
+  return edits.getEdits();
 }
 
+/**
+ * A helper class to manage TextEdits.
+ */
+class TextEditList {
+  /** The list of TextEdits. */
+  private edits: vscode.TextEdit[] = [];
+
+  /**
+   * Add a TextEdit to the list.
+   * @param edit The TextEdit to add.
+   */
+  add(edit: vscode.TextEdit): void {
+    this.edits.push(edit);
+  }
+
+  /**
+   * Delete the line of the given TextLine.
+   * @param lineText The TextLine to delete.
+   */
+  deleteLine(lineText: vscode.TextLine): void {
+    this.edits.push(vscode.TextEdit.delete(lineText.rangeIncludingLineBreak));
+  }
+
+  /**
+   * Truncate the line of the given TextLine.
+   * @param lineText The TextLine to truncate.
+   */
+  truncateLine(lineText: vscode.TextLine): void {
+    if (lineText.text.length !== 0) {
+      this.edits.push(vscode.TextEdit.delete(lineText.range));
+    }
+  }
+
+  /**
+   * Insert an empty line at the given line number.
+   * @param document The document to insert the empty line.
+   * @param lineNo The line number to insert the empty line.
+   */
+  insertEmptyLine(document: vscode.TextDocument, lineNo: number): void {
+    const position = new vscode.Position(lineNo, 0);
+    const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
+    this.edits.push(vscode.TextEdit.insert(position, eol));
+  }
+
+  /**
+   * Sort the TextEdits by their position in the document.
+   */
+  sort(): void {
+    this.edits.sort((a, b) => a.range.start.line - b.range.start.line);
+  }
+
+  /**
+   * Get the list of TextEdits.
+   * @returns The list of TextEdits.
+   */
+  getEdits(): vscode.TextEdit[] {
+    return this.edits;
+  }
+}
+
+/**
+ * Format a parsed line according to the following rules:
+ * @param parsedLine The parsed line to format.
+ * @returns The formatted line.
+ */
 export function formatLine(parsedLine: ParsedLine): string {
   const { name, separator, value, comment } = parsedLine;
 
@@ -139,6 +225,11 @@ export function formatLine(parsedLine: ParsedLine): string {
   return `${nameText}${separatorText}${paramsText} ${commentText}`.trim();
 }
 
+/**
+ * Canonicalize the directive name
+ * @param directiveName The directive name to canonicalize.
+ * @returns The canonicalized directive name.
+ */
 function canonicalizeDirectiveName(directiveName: string): string {
   const directiveKey = directiveName.toLowerCase();
   const directiveInfo = DIRECTIVE_LOOKUP[directiveKey];
@@ -148,6 +239,11 @@ function canonicalizeDirectiveName(directiveName: string): string {
   return directiveInfo.name;
 }
 
+/**
+ * Canonicalize the product token
+ * @param productToken The product token to canonicalize.
+ * @returns The canonicalized product token.
+ */
 function canonicalizeProductToken(productToken: string): string {
   const tokenKey = productToken.toLowerCase();
   const crawlerInfo = CRAWLER_LOOKUP[tokenKey];
@@ -157,6 +253,11 @@ function canonicalizeProductToken(productToken: string): string {
   return crawlerInfo.name;
 }
 
+/**
+ * Determine the state of the line based on the parsed line.
+ * @param parsedLine The parsed line to determine the state.
+ * @returns The state of the line.
+ */
 function determineState(parsedLine: ParsedLine): State {
   if (isEmptySpan(parsedLine.name) && parsedLine.separator === undefined) {
     return parsedLine.comment ? "comment" : "empty";
@@ -172,21 +273,4 @@ function determineState(parsedLine: ParsedLine): State {
     return "global";
   }
   return "in-user-agent";
-}
-
-function toEmptyLineEdit(lineText: vscode.TextLine): vscode.TextEdit {
-  return vscode.TextEdit.replace(lineText.range, "");
-}
-
-function deleteLine(lineText: vscode.TextLine): vscode.TextEdit {
-  return vscode.TextEdit.delete(lineText.rangeIncludingLineBreak);
-}
-
-function insertEmptyLine(
-  document: vscode.TextDocument,
-  lineNo: number,
-): vscode.TextEdit {
-  const position = new vscode.Position(lineNo, 0);
-  const eol = document.eol === vscode.EndOfLine.LF ? "\n" : "\r\n";
-  return vscode.TextEdit.insert(position, eol);
 }

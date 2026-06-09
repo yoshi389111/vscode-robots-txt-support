@@ -3,14 +3,24 @@ import { getAst } from "./RobotsTxtAstAsyncCache";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import * as constants from "./data/constants";
 
+/** Provides decorations for regions in robots.txt documents. */
 export class RobotsTxtRegionDecorator implements vscode.Disposable {
+  /** The list of disposables to be cleaned up when the decorator is disposed. */
   private readonly disposables: vscode.Disposable[] = [];
+  /** The delay executor used to debounce decoration updates. */
   private readonly delayExecutor = new DelayExecutor();
+  /** The decoration type used for disallowed regions. */
   private readonly disallowedDecorationType =
     vscode.window.createTextEditorDecorationType({
       opacity: "0.7",
     });
 
+  /**
+   * Initializes a new instance of the RobotsTxtRegionDecorator class.
+   * Registers event listeners to update decorations when the active editor changes,
+   * when the text selection changes, or when the document changes.
+   * Also performs an initial decoration update for the currently active editor.
+   */
   constructor() {
     // Register the decoration type for disallowed paths
     this.disposables.push(this.disallowedDecorationType);
@@ -52,6 +62,11 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
     }
   }
 
+  /**
+   * Updates the decorations for the given text editor based on the current cursor position and the structure of the robots.txt document.
+   * @param editor The text editor for which to update the decorations.
+   * @returns A promise that resolves when the decorations have been updated.
+   */
   private async updateDecorations(editor: vscode.TextEditor): Promise<void> {
     const document = editor.document;
     if (document.languageId !== constants.LANGUAGE_ID) {
@@ -92,6 +107,7 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
     editor.setDecorations(this.disallowedDecorationType, disallowedRegions);
   }
 
+  /** Disposes of the resources used by the decorator. */
   public dispose(): void {
     this.delayExecutor.cancel();
     this.disposables.forEach((d) => d.dispose());

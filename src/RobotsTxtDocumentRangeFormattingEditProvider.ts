@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { formatRange } from "./RobotsTxtFormatter";
 import { getLogger } from "./utils/logger";
 
+/** Provides formatting edits for a specific range in robots.txt documents. */
 export class RobotsTxtDocumentRangeFormattingEditProvider
   implements vscode.DocumentRangeFormattingEditProvider
 {
