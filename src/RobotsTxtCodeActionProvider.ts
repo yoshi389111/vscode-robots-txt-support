@@ -10,20 +10,23 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
   /** Metadata for the code action provider. */
   public static readonly metadata: vscode.CodeActionProviderMetadata = {
-    providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+    providedCodeActionKinds: [
+      vscode.CodeActionKind.QuickFix,
+      vscode.CodeActionKind.Refactor,
+    ],
   };
 
   /**
    * Provides code actions for the given document and range based on the diagnostics present in the context.
    * @param document The text document for which to provide code actions.
-   * @param _range The range for which to provide code actions.
+   * @param range The range for which to provide code actions.
    * @param context The context containing diagnostics and other information for which to provide code actions.
    * @param _token A cancellation token.
    * @returns An array of code actions or commands to apply to the document.
    */
   public provideCodeActions(
     document: vscode.TextDocument,
-    _range: vscode.Range,
+    range: vscode.Range,
     context: vscode.CodeActionContext,
     _token: vscode.CancellationToken,
   ): vscode.ProviderResult<(vscode.CodeAction | vscode.Command)[]> {
@@ -51,7 +54,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
         context.only.contains(vscode.CodeActionKind.Refactor)
       ) {
         // Provide refactorings
-        actions.push(...this.provideRefactorings(document));
+        actions.push(...this.provideRefactorings(document, range));
       }
 
       if (
@@ -460,13 +463,70 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
   /**
    * Provides refactorings for the robots.txt document.
-   * @param _document The text document for which to provide refactorings.
+   * @param document The text document for which to provide refactorings.
+   * @param range The range for which to provide refactorings.
    * @returns An array of code actions representing refactorings for the given document.
    */
   private provideRefactorings(
-    _document: vscode.TextDocument,
+    document: vscode.TextDocument,
+    range: vscode.Range,
   ): vscode.CodeAction[] {
-    return []; // TODO
+    const refactorings: vscode.CodeAction[] = [];
+    const text = document.getText(range);
+
+    {
+      const replacedText = encodeURI(text);
+      if (replacedText !== text) {
+        const fix = new vscode.CodeAction(
+          vscode.l10n.t("URL-encode (Path Style)"),
+          vscode.CodeActionKind.RefactorRewrite,
+        );
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.replace(document.uri, range, replacedText);
+        refactorings.push(fix);
+      }
+    }
+
+    {
+      const replacedText = encodeURIComponent(text);
+      if (replacedText !== text) {
+        const fix = new vscode.CodeAction(
+          vscode.l10n.t("URL-encode (Query Parameter Style)"),
+          vscode.CodeActionKind.RefactorRewrite,
+        );
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.replace(document.uri, range, replacedText);
+        refactorings.push(fix);
+      }
+    }
+
+    {
+      const replacedText = decodeURI(text);
+      if (replacedText !== text) {
+        const fix = new vscode.CodeAction(
+          vscode.l10n.t("URL-decode (Path Style)"),
+          vscode.CodeActionKind.RefactorRewrite,
+        );
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.replace(document.uri, range, replacedText);
+        refactorings.push(fix);
+      }
+    }
+
+    {
+      const replacedText = decodeURIComponent(text);
+      if (replacedText !== text) {
+        const fix = new vscode.CodeAction(
+          vscode.l10n.t("URL-decode (Query Parameter Style)"),
+          vscode.CodeActionKind.RefactorRewrite,
+        );
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.replace(document.uri, range, replacedText);
+        refactorings.push(fix);
+      }
+    }
+
+    return refactorings;
   }
 
   /**
