@@ -519,7 +519,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     }
 
     {
-      const replacedText = decodeURIComponent(text);
+      let replacedText: string;
+      try {
+        replacedText = decodeURIComponent(text);
+      } catch {
+        replacedText = text;
+      }
       if (replacedText !== text) {
         const fix = new vscode.CodeAction(
           vscode.l10n.t("URL-decode (Query Parameter Style)"),
