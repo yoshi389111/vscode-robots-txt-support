@@ -367,6 +367,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     return [fixDisallow, fixAllow];
   }
 
+  /**
+   * Creates code actions to encode HTML entity references found in the document.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the presence of HTML entity references.
+   * @returns An array of code actions representing quick fixes to encode the HTML entity references.
+   */
   private createFoundEntityReferencingFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,

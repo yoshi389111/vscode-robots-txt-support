@@ -419,12 +419,11 @@ export class RobotsTxtDiagnosticUpdater {
   }
 
   /**
-   * 正規表現の条件を満たす部分のrangeに絞り込んで diagnostic を追加する。
-   * @param diagnosticInfo 追加するdiagnosticの情報
-   * @param message 診断メッセージ
-   * @param segment 診断を適用する範囲
-   * @param regex 正規表現の条件を満たす場合に診断を追加するための正規表現
-   * @remarks 例えば、URLのパラメータに対して、特定の文字が含まれている場合にのみ診断を追加したい場合などに使用する。
+   * Adds diagnostics for all matches of a regular expression within a given text segment.
+   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, and optional tag.
+   * @param message The message for the diagnostic.
+   * @param segment The text segment in which to search for matches of the regular expression, and where the diagnostics will be applied.
+   * @param regex The regular expression to be applied to the text segment to find matches for which diagnostics will be added.
    */
   public addDiagnosticWithRegex(
     diagnosticInfo: DiagnosticInfo,
