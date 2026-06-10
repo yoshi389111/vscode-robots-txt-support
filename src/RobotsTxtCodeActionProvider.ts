@@ -501,7 +501,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     }
 
     {
-      const replacedText = decodeURI(text);
+      let replacedText: string;
+      try {
+        replacedText = decodeURI(text);
+      } catch {
+        replacedText = text;
+      }
       if (replacedText !== text) {
         const fix = new vscode.CodeAction(
           vscode.l10n.t("URL-decode (Path Style)"),
