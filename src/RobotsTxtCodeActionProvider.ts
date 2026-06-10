@@ -41,7 +41,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
       if (
         !context.only ||
-        context.only.contains(vscode.CodeActionKind.QuickFix)
+        vscode.CodeActionKind.QuickFix.contains(context.only)
       ) {
         // Provide quick fixes for diagnostics
         for (const diagnostic of context.diagnostics) {
@@ -51,7 +51,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
       if (
         !context.only ||
-        context.only.contains(vscode.CodeActionKind.Refactor)
+        vscode.CodeActionKind.Refactor.contains(context.only)
       ) {
         // Provide refactorings
         actions.push(...this.provideRefactorings(document, range));
@@ -59,7 +59,7 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
 
       if (
         !context.only ||
-        context.only.contains(vscode.CodeActionKind.Source)
+        vscode.CodeActionKind.Source.contains(context.only)
       ) {
         // Provide source actions
         actions.push(...this.provideSourceActions(document));
