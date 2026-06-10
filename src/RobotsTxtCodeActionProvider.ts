@@ -115,6 +115,9 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       case DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.code:
         return this.createGroupMissingAllowDisallowFix(document, diagnostic);
 
+      case DIAGNOSTIC_LOOKUP.FOUND_ENTITY_REFERENCING.code:
+        return this.createFoundEntityReferencingFix(document, diagnostic);
+
       default:
         return [];
     }
@@ -362,6 +365,40 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       false,
     );
     return [fixDisallow, fixAllow];
+  }
+
+  private createFoundEntityReferencingFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    let encodedString = "";
+    switch (document.getText(diagnostic.range)) {
+      case "&amp;":
+        encodedString = "%26";
+        break;
+      case "&lt;":
+        encodedString = "%3C";
+        break;
+      case "&gt;":
+        encodedString = "%3E";
+        break;
+      case "&quot;":
+        encodedString = "%22";
+        break;
+      case "&apos;":
+        encodedString = "%27";
+        break;
+      default:
+        return [];
+    }
+
+    const fix = this.createReplaceFix(
+      document,
+      diagnostic,
+      encodedString,
+      this.getMessageReplaceWith(encodedString),
+    );
+    return [fix];
   }
 
   /**

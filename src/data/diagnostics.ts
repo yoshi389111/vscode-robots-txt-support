@@ -105,6 +105,14 @@ export const DIAGNOSTIC_LOOKUP = {
     message: (arg: string) =>
       vscode.l10n.t("Unknown directive. Did you mean '{0}'?", arg),
   },
+  FOUND_ENTITY_REFERENCING: {
+    code: "RBT114",
+    severity: vscode.DiagnosticSeverity.Information,
+    message: () =>
+      vscode.l10n.t(
+        "HTML entity reference found. `robots.txt` does not support HTML entities.",
+      ),
+  },
 
   URL_INVALID: {
     code: "RBT501",

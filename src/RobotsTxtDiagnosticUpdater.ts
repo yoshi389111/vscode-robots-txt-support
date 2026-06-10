@@ -261,7 +261,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param paramToken The AST token representing the path pattern parameter to be checked.
    */
   private checkParamPathPattern(paramToken: Span): void {
-    const REGEX_ENCODED_PATH = /^[-$%&*./0-9=?A-Z_a-z~]+$/;
+    const REGEX_ENCODED_PATH = /^[-!$%&'()*+,./0-9:;=?@A-Z_a-z~]+$/;
     const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
     if (isEmptySpan(paramToken)) {
       return;
@@ -273,6 +273,7 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER.message(),
         paramToken.range,
       );
+      return;
     } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
       // The path pattern contains invalid URL encoding
       this.addDiagnostic(
@@ -280,6 +281,7 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.message(),
         paramToken.range,
       );
+      return;
     }
     if (!paramToken.text.startsWith("/")) {
       // The path pattern does not start with a slash
@@ -311,6 +313,21 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK,
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK.message(),
         paramToken.range,
+      );
+    }
+    if (
+      paramToken.text.includes("&amp;") ||
+      paramToken.text.includes("&lt;") ||
+      paramToken.text.includes("&gt;") ||
+      paramToken.text.includes("&quot;") ||
+      paramToken.text.includes("&apos;")
+    ) {
+      // HTML entity references are not supported in robots.txt files
+      this.addDiagnosticWithRegex(
+        DIAGNOSTIC_LOOKUP.FOUND_ENTITY_REFERENCING,
+        DIAGNOSTIC_LOOKUP.FOUND_ENTITY_REFERENCING.message(),
+        paramToken,
+        /&(?:amp|lt|gt|quot|apos);/g,
       );
     }
   }
@@ -398,6 +415,30 @@ export class RobotsTxtDiagnosticUpdater {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * 正規表現の条件を満たす部分のrangeに絞り込んで diagnostic を追加する。
+   * @param diagnosticInfo 追加するdiagnosticの情報
+   * @param message 診断メッセージ
+   * @param segment 診断を適用する範囲
+   * @param regex 正規表現の条件を満たす場合に診断を追加するための正規表現
+   * @remarks 例えば、URLのパラメータに対して、特定の文字が含まれている場合にのみ診断を追加したい場合などに使用する。
+   */
+  public addDiagnosticWithRegex(
+    diagnosticInfo: DiagnosticInfo,
+    message: string,
+    segment: Span,
+    regex: RegExp,
+  ): void {
+    const text = segment.text;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(text)) !== null) {
+      const matchStart = segment.range.start.translate(0, match.index);
+      const matchEnd = matchStart.translate(0, match[0].length);
+      const matchRange = new vscode.Range(matchStart, matchEnd);
+      this.addDiagnostic(diagnosticInfo, message, matchRange);
     }
   }
 
