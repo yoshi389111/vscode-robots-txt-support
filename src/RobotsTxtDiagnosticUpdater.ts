@@ -425,15 +425,23 @@ export class RobotsTxtDiagnosticUpdater {
    * @param segment The text segment in which to search for matches of the regular expression, and where the diagnostics will be applied.
    * @param regex The regular expression to be applied to the text segment to find matches for which diagnostics will be added.
    */
-  public addDiagnosticWithRegex(
+  private addDiagnosticWithRegex(
     diagnosticInfo: DiagnosticInfo,
     message: string,
     segment: Span,
     regex: RegExp,
   ): void {
+    const flags = regex.flags.includes("g") ? regex.flags : `${regex.flags}g`;
+    const globalRegex = new RegExp(regex.source, flags);
+    globalRegex.lastIndex = 0;
+
     const text = segment.text;
     let match: RegExpExecArray | null;
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = globalRegex.exec(text)) !== null) {
+      if (match[0].length === 0) {
+        globalRegex.lastIndex++;
+        continue;
+      }
       const matchStart = segment.range.start.translate(0, match.index);
       const matchEnd = matchStart.translate(0, match[0].length);
       const matchRange = new vscode.Range(matchStart, matchEnd);
@@ -447,7 +455,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param message The message for the diagnostic.
    * @param range The range in the document where the diagnostic should be applied.
    */
-  public addDiagnostic(
+  private addDiagnostic(
     diagnosticInfo: DiagnosticInfo,
     message: string,
     range: vscode.Range,
