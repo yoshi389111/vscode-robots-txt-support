@@ -13,3 +13,8 @@ VS Code extension for `robots.txt` language support.
 - CodeLens for user-agents
 - Formatting support
 - Snippets for common directives
+
+## Reference
+
+- [RFC 9309 - The Robots Exclusion Protocol](https://www.rfc-editor.org/info/rfc9309/)
+- [Robots Exclusion Protocol](https://www.robotstxt.org/)

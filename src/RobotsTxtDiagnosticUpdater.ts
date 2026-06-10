@@ -261,7 +261,7 @@ export class RobotsTxtDiagnosticUpdater {
    * @param paramToken The AST token representing the path pattern parameter to be checked.
    */
   private checkParamPathPattern(paramToken: Span): void {
-    const REGEX_ENCODED_PATH = /^[-$%&*./0-9=?A-Z_a-z~]+$/;
+    const REGEX_ENCODED_PATH = /^[-!$%&'()*+,./0-9:;=?@A-Z_a-z~]+$/;
     const REGEX_VALID_URL_ENCODING = /^(?:[^%]|%[0-9A-Fa-f]{2})*$/;
     if (isEmptySpan(paramToken)) {
       return;
@@ -273,6 +273,7 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER.message(),
         paramToken.range,
       );
+      return;
     } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
       // The path pattern contains invalid URL encoding
       this.addDiagnostic(
@@ -280,6 +281,7 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.message(),
         paramToken.range,
       );
+      return;
     }
     if (!paramToken.text.startsWith("/")) {
       // The path pattern does not start with a slash
@@ -311,6 +313,21 @@ export class RobotsTxtDiagnosticUpdater {
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK,
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOUBLE_ASTERISK.message(),
         paramToken.range,
+      );
+    }
+    if (
+      paramToken.text.includes("&amp;") ||
+      paramToken.text.includes("&lt;") ||
+      paramToken.text.includes("&gt;") ||
+      paramToken.text.includes("&quot;") ||
+      paramToken.text.includes("&apos;")
+    ) {
+      // HTML entity references are not supported in robots.txt files
+      this.addDiagnosticWithRegex(
+        DIAGNOSTIC_LOOKUP.FOUND_ENTITY_REFERENCING,
+        DIAGNOSTIC_LOOKUP.FOUND_ENTITY_REFERENCING.message(),
+        paramToken,
+        /&(?:amp|lt|gt|quot|apos);/g,
       );
     }
   }
@@ -402,12 +419,43 @@ export class RobotsTxtDiagnosticUpdater {
   }
 
   /**
+   * Adds diagnostics for all matches of a regular expression within a given text segment.
+   * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, and optional tag.
+   * @param message The message for the diagnostic.
+   * @param segment The text segment in which to search for matches of the regular expression, and where the diagnostics will be applied.
+   * @param regex The regular expression to be applied to the text segment to find matches for which diagnostics will be added.
+   */
+  private addDiagnosticWithRegex(
+    diagnosticInfo: DiagnosticInfo,
+    message: string,
+    segment: Span,
+    regex: RegExp,
+  ): void {
+    const flags = regex.flags.includes("g") ? regex.flags : `${regex.flags}g`;
+    const globalRegex = new RegExp(regex.source, flags);
+    globalRegex.lastIndex = 0;
+
+    const text = segment.text;
+    let match: RegExpExecArray | null;
+    while ((match = globalRegex.exec(text)) !== null) {
+      if (match[0].length === 0) {
+        globalRegex.lastIndex++;
+        continue;
+      }
+      const matchStart = segment.range.start.translate(0, match.index);
+      const matchEnd = matchStart.translate(0, match[0].length);
+      const matchRange = new vscode.Range(matchStart, matchEnd);
+      this.addDiagnostic(diagnosticInfo, message, matchRange);
+    }
+  }
+
+  /**
    * Adds a diagnostic to the collection based on the provided diagnostic information and range.
    * @param diagnosticInfo The information about the diagnostic to be added, including code, severity, and optional tag.
    * @param message The message for the diagnostic.
    * @param range The range in the document where the diagnostic should be applied.
    */
-  public addDiagnostic(
+  private addDiagnostic(
     diagnosticInfo: DiagnosticInfo,
     message: string,
     range: vscode.Range,
