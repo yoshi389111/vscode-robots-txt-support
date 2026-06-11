@@ -92,7 +92,7 @@ export const DIAGNOSTIC_LOOKUP = {
   PATH_PATTERN_INVALID_URL_CHARACTER: {
     code: "RBT111",
     severity: vscode.DiagnosticSeverity.Error,
-    message: () => vscode.l10n.t("Character must be percent-encoded."),
+    message: () => vscode.l10n.t("Contains unencoded characters."),
   },
   PATH_PATTERN_INVALID_PERCENT_ENCODING: {
     code: "RBT112",

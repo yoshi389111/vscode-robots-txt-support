@@ -275,7 +275,7 @@ export class RobotsTxtDiagnosticUpdater {
       );
       return;
     } else if (!REGEX_VALID_URL_ENCODING.test(paramToken.text)) {
-      // The path pattern contains invalid URL encoding
+      // The path pattern contains invalid percent-encoding
       this.addDiagnostic(
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_PERCENT_ENCODING,
         DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_PERCENT_ENCODING.message(),
