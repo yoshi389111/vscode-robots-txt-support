@@ -106,8 +106,14 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
       case DIAGNOSTIC_LOOKUP.PATH_PATTERN_DOLLAR.code:
         return this.createPathPatternDollarFix(document, diagnostic);
 
-      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_ENCODING.code:
-        return this.createPathPatternInvalidUrlEncodingFix(
+      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_URL_CHARACTER.code:
+        return this.createPathPatternInvalidUrlCharacterFix(
+          document,
+          diagnostic,
+        );
+
+      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_INVALID_PERCENT_ENCODING.code:
+        return this.createPathPatternInvalidPercentEncodingFix(
           document,
           diagnostic,
         );
@@ -285,12 +291,34 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   }
 
   /**
+   * Creates a code action to encode invalid URL characters in a path pattern.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the issue.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
+   */
+  private createPathPatternInvalidUrlCharacterFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const targetString = document.getText(diagnostic.range);
+    const replacedString = encodeURI(targetString);
+    const fixReplace = this.createReplaceFix(
+      document,
+      diagnostic,
+      replacedString,
+      vscode.l10n.t("Encode invalid URL characters"),
+    );
+
+    return [fixReplace];
+  }
+
+  /**
    * Creates a code action to encode or remove invalid '%' characters in a path pattern.
    * @param document The text document containing the diagnostic.
    * @param diagnostic The diagnostic indicating the issue.
    * @returns An array of code actions representing quick fixes for the given diagnostic.
    */
-  private createPathPatternInvalidUrlEncodingFix(
+  private createPathPatternInvalidPercentEncodingFix(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
   ): vscode.CodeAction[] {
