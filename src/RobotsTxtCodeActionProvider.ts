@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
+import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getLogger } from "./utils/logger";
-import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 
 /** Provides code actions for `robots.txt` files. */
 export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {

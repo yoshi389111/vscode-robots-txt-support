@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseRobotsTxt, AstRoot } from "./parser/documentParser";
+import { AstRoot, parseRobotsTxt } from "./parser/documentParser";
 import { VersionAsyncCache } from "./utils/VersionAsyncCache";
 
 /** Cache for storing parsed ASTs of `robots.txt` documents. */

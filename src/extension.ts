@@ -1,19 +1,19 @@
 import * as vscode from "vscode";
-import { RobotsTxtCompletionItemProvider } from "./RobotsTxtCompletionItemProvider";
-import { RobotsTxtFoldingRangeProvider } from "./RobotsTxtFoldingRangeProvider";
-import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider";
-import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
+import * as constants from "./data/constants";
+import { initialize as initializeRobotsTxtAstAsyncCache } from "./RobotsTxtAstAsyncCache";
 import { RobotsTxtCodeActionProvider } from "./RobotsTxtCodeActionProvider";
-import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { RobotsTxtCodelensProvider } from "./RobotsTxtCodelensProvider";
+import { RobotsTxtCompletionItemProvider } from "./RobotsTxtCompletionItemProvider";
+import { RobotsTxtDiagnosticUpdater } from "./RobotsTxtDiagnosticUpdater";
 import { RobotsTxtDocumentFormattingEditProvider } from "./RobotsTxtDocumentFormattingEditProvider";
 import { RobotsTxtDocumentRangeFormattingEditProvider } from "./RobotsTxtDocumentRangeFormattingEditProvider";
+import { RobotsTxtFoldingRangeProvider } from "./RobotsTxtFoldingRangeProvider";
+import { RobotsTxtHoverProvider } from "./RobotsTxtHoverProvider";
 import { RobotsTxtOnTypeFormattingEditProvider } from "./RobotsTxtOnTypeFormattingEditProvider";
-import { initialize as initializeRobotsTxtAstAsyncCache } from "./RobotsTxtAstAsyncCache";
 import { RobotsTxtRegionDecorator } from "./RobotsTxtRegionDecorator";
+import { RobotsTxtSignatureHelpProvider } from "./RobotsTxtSignatureHelpProvider";
 import { DelayExecutor } from "./utils/DelayExecutor";
 import { initLogger } from "./utils/logger";
-import * as constants from "./data/constants";
 
 /**
  * Activates the extension by registering all providers and listeners.

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
+import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { parseLine, splitTokenWithLimit } from "./parser/lineParser";
 import { Span } from "./parser/span";
-import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { getLogger } from "./utils/logger";
 
 /** Provides signature help for `robots.txt` directives. */

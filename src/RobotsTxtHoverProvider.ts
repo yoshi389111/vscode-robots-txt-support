@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { parseLine } from "./parser/lineParser";
 import * as constants from "./data/constants";
 import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
+import { parseLine } from "./parser/lineParser";
 import { getLogger } from "./utils/logger";
 
 /** Provides hover information for `robots.txt` files. */

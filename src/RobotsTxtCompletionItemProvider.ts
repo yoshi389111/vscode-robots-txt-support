@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
 import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import {
-  parseLine,
   ParsedLine,
+  parseLine,
   splitTokenWithLimit,
 } from "./parser/lineParser";
 import { isEmptySpan, Span, subspan } from "./parser/span";

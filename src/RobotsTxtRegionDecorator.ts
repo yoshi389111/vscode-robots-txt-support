@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { DelayExecutor } from "./utils/DelayExecutor";
-import * as constants from "./data/constants";
 
 /** Provides decorations for regions in robots.txt documents. */
 export class RobotsTxtRegionDecorator implements vscode.Disposable {

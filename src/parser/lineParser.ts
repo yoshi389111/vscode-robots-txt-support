@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Span, trimSpan, subspan, isEmptySpan } from "./span";
+import { isEmptySpan, Span, subspan, trimSpan } from "./span";
 
 /** Represents a parsed line of the robots.txt file */
 export interface ParsedLine {

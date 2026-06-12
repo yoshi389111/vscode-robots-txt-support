@@ -1,14 +1,14 @@
-import * as vscode from "vscode";
 import * as path from "path";
-import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
+import * as vscode from "vscode";
 import { getAst } from "./RobotsTxtAstAsyncCache";
+import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
+import * as constants from "./data/constants";
+import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
+import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
 import { calculateEditDistance } from "./utils/calculateEditDistance";
 import { getLogger } from "./utils/logger";
-import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
-import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
-import * as constants from "./data/constants";
 
 /** Updates diagnostic collection for `robots.txt` files. */
 export class RobotsTxtDiagnosticUpdater {

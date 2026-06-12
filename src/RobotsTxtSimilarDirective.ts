@@ -1,5 +1,5 @@
-import { calculateEditDistance } from "./utils/calculateEditDistance";
 import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
+import { calculateEditDistance } from "./utils/calculateEditDistance";
 
 /** The maximum allowed edit distance for considering two directives as similar. */
 const SIMILARITY_THRESHOLD = 2;

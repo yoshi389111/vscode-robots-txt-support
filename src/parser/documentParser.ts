@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
+import { DIRECTIVE_LOOKUP } from "../data/directiveInfo";
 import { parseLine, splitTokenWithLimit } from "./lineParser";
 import { Span, isEmptySpan } from "./span";
-import { DIRECTIVE_LOOKUP } from "../data/directiveInfo";
 
 /**
  * Defines the structure of a directive in the abstract syntax tree (AST) representation of a robots.txt file.

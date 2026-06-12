@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { getAst } from "./RobotsTxtAstAsyncCache";
+import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 import { AstDirective } from "./parser/documentParser";
 import { getLogger } from "./utils/logger";
-import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 
 /** Internal command ID for showing crawler information. */
 const INTERNAL_COMMAND_ID =
