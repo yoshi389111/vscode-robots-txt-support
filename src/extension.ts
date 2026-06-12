@@ -113,8 +113,11 @@ function* initializeExtension(
 
   const diagnosticUpdater = new RobotsTxtDiagnosticUpdater();
   const delayExecutor = new DelayExecutor();
-  const diagnosticUpdate = (document: vscode.TextDocument) => {
-    if (document.languageId === constants.LANGUAGE_ID) {
+  const diagnosticUpdate = (
+    document: vscode.TextDocument,
+    similarityCheck = false,
+  ) => {
+    if (document.languageId === constants.LANGUAGE_ID || similarityCheck) {
       delayExecutor.execute(
         () => diagnosticUpdater.update(document, diagnostics),
         200,
@@ -124,10 +127,12 @@ function* initializeExtension(
 
   // Initial diagnostics collection for the active editor
   if (vscode.window.activeTextEditor) {
-    diagnosticUpdate(vscode.window.activeTextEditor.document);
+    diagnosticUpdate(vscode.window.activeTextEditor.document, true);
   }
   // Listen to document opens and update diagnostics
-  yield vscode.workspace.onDidOpenTextDocument(diagnosticUpdate);
+  yield vscode.workspace.onDidOpenTextDocument((document) =>
+    diagnosticUpdate(document, true),
+  );
   // Listen to document saves and update diagnostics
   yield vscode.workspace.onDidSaveTextDocument(diagnosticUpdate);
   // Listen to document closures and update diagnostics

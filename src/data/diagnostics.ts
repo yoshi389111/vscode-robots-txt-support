@@ -34,6 +34,11 @@ export const DIAGNOSTIC_LOOKUP = {
     severity: vscode.DiagnosticSeverity.Warning,
     message: () => vscode.l10n.t("Exceeds the recommended 500 KiB limit."),
   },
+  FILENAME_SIMILAR: {
+    code: "RBT005",
+    severity: vscode.DiagnosticSeverity.Information,
+    message: () => vscode.l10n.t("Did you mean 'robots.txt'?"),
+  },
 
   DIRECTIVE_MISSING_COLON: {
     code: "RBT101",

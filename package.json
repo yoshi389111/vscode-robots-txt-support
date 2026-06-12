@@ -29,8 +29,7 @@
           "robots-txt"
         ],
         "filenames": [
-          "robots.txt",
-          "robot.txt"
+          "robots.txt"
         ],
         "configuration": "./language-configuration.json"
       }

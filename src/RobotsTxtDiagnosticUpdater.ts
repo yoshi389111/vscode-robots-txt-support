@@ -4,6 +4,7 @@ import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
+import { calculateEditDistance } from "./utils/calculateEditDistance";
 import { getLogger } from "./utils/logger";
 import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
@@ -30,54 +31,97 @@ export class RobotsTxtDiagnosticUpdater {
     try {
       this.diagnostics = [];
 
-      // Check the file itself for issues
-      await this.checkFile(document);
-
-      // Parse the robots.txt file
-      const astRoot = await getAst(document);
-
-      for (const astDirective of astRoot.outside.rules) {
-        this.addDiagnostic(
-          DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE,
-          DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE.message(),
-          astDirective.name.range,
-        );
-        this.checkDirective(astDirective);
+      if (document.languageId === constants.LANGUAGE_ID) {
+        await this.checkRobotsTxt(document);
+      } else {
+        this.checkSimilarityBasedFileName(document);
       }
 
-      for (const group of astRoot.groups) {
-        for (const userAgent of group.userAgents) {
-          this.checkDirective(userAgent);
-        }
-
-        for (const rule of group.rules) {
-          this.checkDirective(rule);
-        }
-
-        const hasAllowOrDisallowRule = group.rules.some((rule) =>
-          ["allow", "disallow"].includes(rule.type),
-        );
-        if (!hasAllowOrDisallowRule) {
-          // The group does not contain allow/disallow directives
-          this.addDiagnostic(
-            DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW,
-            DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.message(),
-            group.userAgents[group.userAgents.length - 1]!.name.range,
-          );
-        }
+      if (this.diagnostics.length === 0) {
+        collection.delete(document.uri);
+      } else {
+        collection.set(document.uri, this.diagnostics);
       }
-
-      for (const astDirective of astRoot.globals) {
-        this.checkDirective(astDirective);
-      }
-
-      collection.set(document.uri, this.diagnostics);
     } catch (error) {
       this.log.error("Error updating diagnostics for document", error);
-      collection.set(document.uri, []);
+      collection.delete(document.uri);
     } finally {
       this.log.trace("Finished updating diagnostics for document");
       this.diagnostics = [];
+    }
+  }
+
+  /**
+   * Checks the validity of the given `robots.txt` document.
+   * @param document The text document representing the `robots.txt` file to be checked.
+   */
+  private async checkRobotsTxt(document: vscode.TextDocument): Promise<void> {
+    // Check the file itself for issues
+    await this.checkFile(document);
+
+    // Parse the robots.txt file
+    const astRoot = await getAst(document);
+
+    for (const astDirective of astRoot.outside.rules) {
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE,
+        DIAGNOSTIC_LOOKUP.DIRECTIVE_OUTSIDE.message(),
+        astDirective.name.range,
+      );
+      this.checkDirective(astDirective);
+    }
+
+    for (const group of astRoot.groups) {
+      for (const userAgent of group.userAgents) {
+        this.checkDirective(userAgent);
+      }
+
+      for (const rule of group.rules) {
+        this.checkDirective(rule);
+      }
+
+      const hasAllowOrDisallowRule = group.rules.some((rule) =>
+        ["allow", "disallow"].includes(rule.type),
+      );
+      if (!hasAllowOrDisallowRule) {
+        // The group does not contain allow/disallow directives
+        this.addDiagnostic(
+          DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW,
+          DIAGNOSTIC_LOOKUP.GROUP_MISSING_ALLOW_DISALLOW.message(),
+          group.userAgents[group.userAgents.length - 1]!.name.range,
+        );
+      }
+    }
+
+    for (const astDirective of astRoot.globals) {
+      this.checkDirective(astDirective);
+    }
+  }
+
+  /**
+   * Checks if the file name of the given document is similar to 'robots.txt' and adds a diagnostic if it is, suggesting a possible typo.
+   * @param document The text document whose file name is to be checked for similarity to 'robots.txt'.
+   */
+  private checkSimilarityBasedFileName(document: vscode.TextDocument): void {
+    const SIMILAR_THRESHOLD = 1;
+    const REGULAR_NAME = "robots.txt";
+    const targetName = path.basename(document.fileName);
+    if (
+      targetName === REGULAR_NAME ||
+      SIMILAR_THRESHOLD < Math.abs(REGULAR_NAME.length - targetName.length)
+    ) {
+      return;
+    }
+
+    const lowerFileName = targetName.toLowerCase();
+    const distance = calculateEditDistance(REGULAR_NAME, lowerFileName);
+    if (distance <= SIMILAR_THRESHOLD) {
+      // The file name is similar to 'robots.txt'
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.FILENAME_SIMILAR,
+        DIAGNOSTIC_LOOKUP.FILENAME_SIMILAR.message(),
+        new vscode.Range(0, 0, 0, 0),
+      );
     }
   }
 
