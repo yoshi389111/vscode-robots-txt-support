@@ -113,6 +113,11 @@ export const DIAGNOSTIC_LOOKUP = {
         "HTML entity reference found. `robots.txt` does not support HTML entities.",
       ),
   },
+  PATH_PATTERN_LOWERCASE_URL_ENCODING: {
+    code: "RBT115",
+    severity: vscode.DiagnosticSeverity.Hint,
+    message: () => vscode.l10n.t("Percent-encoding is usually uppercase."),
+  },
 
   URL_INVALID: {
     code: "RBT501",
