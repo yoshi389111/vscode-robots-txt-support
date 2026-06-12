@@ -291,6 +291,18 @@ export class RobotsTxtDiagnosticUpdater {
         paramToken.range,
       );
     }
+
+    const REGEX_LOWERCASE_URL_ENCODING =
+      /%(?:[a-f][0-9A-F]|[0-9A-F][a-f]|[a-f]{2})/;
+    if (REGEX_LOWERCASE_URL_ENCODING.test(paramToken.text)) {
+      // The path pattern contains lowercase letters in percent-encoding (should be uppercase)
+      this.addDiagnostic(
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_LOWERCASE_URL_ENCODING,
+        DIAGNOSTIC_LOOKUP.PATH_PATTERN_LOWERCASE_URL_ENCODING.message(),
+        paramToken.range,
+      );
+    }
+
     if (paramToken.text.lastIndexOf("$", paramToken.text.length - 2) !== -1) {
       // The '$' character is only allowed at the end of the path pattern
       this.addDiagnostic(

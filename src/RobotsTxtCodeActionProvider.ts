@@ -118,6 +118,12 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
           diagnostic,
         );
 
+      case DIAGNOSTIC_LOOKUP.PATH_PATTERN_LOWERCASE_URL_ENCODING.code:
+        return this.createPathPatternLowercaseUrlEncodingFix(
+          document,
+          diagnostic,
+        );
+
       case DIAGNOSTIC_LOOKUP.DIRECTIVE_UNKNOWN_SUGGESTION.code:
         return this.createUnknownDirectiveFix(document, diagnostic);
 
@@ -346,6 +352,30 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
     );
 
     return [fixReplace, fixRemove];
+  }
+
+  /**
+   * Creates a code action to convert percent-encoding in a path pattern to uppercase.
+   * @param document The text document containing the diagnostic.
+   * @param diagnostic The diagnostic indicating the issue.
+   * @returns An array of code actions representing quick fixes for the given diagnostic.
+   */
+  private createPathPatternLowercaseUrlEncodingFix(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction[] {
+    const targetString = document.getText(diagnostic.range);
+    const replacedString = targetString.replace(/%[0-9A-Fa-f]{2}/g, (match) =>
+      match.toUpperCase(),
+    );
+    const fixReplace = this.createReplaceFix(
+      document,
+      diagnostic,
+      replacedString,
+      vscode.l10n.t("Convert percent-encoding to uppercase"),
+    );
+
+    return [fixReplace];
   }
 
   /**
