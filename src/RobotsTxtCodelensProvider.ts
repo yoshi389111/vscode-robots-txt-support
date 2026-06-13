@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
-import { getAst } from "./RobotsTxtAstAsyncCache";
+import * as constants from "./data/constants";
 import { CRAWLER_LOOKUP, CrawlerInfo } from "./data/crawlerInfo";
 import { AstDirective } from "./parser/documentParser";
+import { getAst } from "./RobotsTxtAstAsyncCache";
 import { getLogger } from "./utils/logger";
 
 /** Internal command ID for showing crawler information. */
@@ -25,6 +26,20 @@ export class RobotsTxtCodelensProvider
 
   /** The list of registered disposables. */
   private readonly disposables: vscode.Disposable[] = [];
+
+  /**
+   * Registers the code lens provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    const provider = new RobotsTxtCodelensProvider();
+    const disposable = vscode.languages.registerCodeLensProvider(
+      constants.LANGUAGE_ID,
+      provider,
+    );
+    // Return a combined disposable that includes both the provider and the command registration
+    return vscode.Disposable.from(disposable, provider);
+  }
 
   /** Initializes a new instance of the RobotsTxtCodelensProvider class. */
   constructor() {

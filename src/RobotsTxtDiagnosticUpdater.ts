@@ -7,6 +7,7 @@ import { DIAGNOSTIC_LOOKUP, DiagnosticInfo } from "./data/diagnostics";
 import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import { AstDirective } from "./parser/documentParser";
 import { Span, isEmptySpan } from "./parser/span";
+import { DelayExecutor } from "./utils/DelayExecutor";
 import { calculateEditDistance } from "./utils/calculateEditDistance";
 import { getLogger } from "./utils/logger";
 
@@ -17,6 +18,65 @@ export class RobotsTxtDiagnosticUpdater {
 
   /** The list of collected diagnostics. */
   private diagnostics: vscode.Diagnostic[] = [];
+
+  /**
+   * Registers the diagnostic updater for `robots.txt` files.
+   * @param delayTime The delay time in milliseconds to debounce the diagnostic updates.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(delayTime: number): vscode.Disposable {
+    const delayExecutor = new DelayExecutor();
+    const diagnostics = vscode.languages.createDiagnosticCollection(
+      constants.LANGUAGE_ID,
+    );
+    const diagnosticUpdater = new RobotsTxtDiagnosticUpdater();
+    const diagnosticUpdate = (
+      document: vscode.TextDocument,
+      similarityCheck = false,
+    ) => {
+      if (document.languageId === constants.LANGUAGE_ID || similarityCheck) {
+        delayExecutor.execute(
+          () => diagnosticUpdater.update(document, diagnostics),
+          delayTime,
+        );
+      }
+    };
+
+    function* disposables(): Iterable<vscode.Disposable> {
+      // Initial diagnostics collection for the active editor
+      if (vscode.window.activeTextEditor) {
+        diagnosticUpdate(vscode.window.activeTextEditor.document, true);
+      }
+      // Listen to document opens and update diagnostics
+      yield vscode.workspace.onDidOpenTextDocument((document) =>
+        diagnosticUpdate(document, true),
+      );
+      // Listen to document saves and update diagnostics
+      yield vscode.workspace.onDidSaveTextDocument(diagnosticUpdate);
+      // Listen to document closures and update diagnostics
+      yield vscode.workspace.onDidCloseTextDocument(diagnosticUpdate);
+      // Listen to document changes and update diagnostics
+      yield vscode.workspace.onDidChangeTextDocument((event) => {
+        diagnosticUpdate(event.document);
+      });
+      // Listen to active editor changes and update diagnostics
+      yield vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (editor) {
+          diagnosticUpdate(editor.document);
+        }
+      });
+
+      // Listen to file deletions and delete diagnostics
+      yield vscode.workspace.onDidDeleteFiles((event) => {
+        event.files.forEach((uri) => diagnostics.delete(uri));
+      });
+      // Listen to file renames and delete diagnostics for old URIs
+      yield vscode.workspace.onDidRenameFiles((event) => {
+        event.files.forEach((files) => diagnostics.delete(files.oldUri));
+      });
+    }
+    return vscode.Disposable.from(delayExecutor, diagnostics, ...disposables());
+  }
 
   /**
    * Updates the diagnostics for the given document by validating its content and structure according to the rules of `robots.txt` files.

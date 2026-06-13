@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
 import { DIAGNOSTIC_LOOKUP } from "./data/diagnostics";
 import { getSimilarDirective } from "./RobotsTxtSimilarDirective";
 import { getLogger } from "./utils/logger";
@@ -8,13 +9,22 @@ export class RobotsTxtCodeActionProvider implements vscode.CodeActionProvider {
   /** The logger instance. */
   private readonly log = getLogger();
 
-  /** Metadata for the code action provider. */
-  public static readonly metadata: vscode.CodeActionProviderMetadata = {
-    providedCodeActionKinds: [
-      vscode.CodeActionKind.QuickFix,
-      vscode.CodeActionKind.Refactor,
-    ],
-  };
+  /**
+   * Registers the code action provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerCodeActionsProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtCodeActionProvider(),
+      {
+        providedCodeActionKinds: [
+          vscode.CodeActionKind.QuickFix,
+          vscode.CodeActionKind.Refactor,
+        ],
+      },
+    );
+  }
 
   /**
    * Provides code actions for the given document and range based on the diagnostics present in the context.

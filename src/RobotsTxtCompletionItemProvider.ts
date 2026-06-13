@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
 import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
 import { DIRECTIVE_LOOKUP, ParameterInfo } from "./data/directiveInfo";
 import {
@@ -15,6 +16,17 @@ export class RobotsTxtCompletionItemProvider
 {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the completion item provider for `robots.txt` files.
+   * @return A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerCompletionItemProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtCompletionItemProvider(),
+    );
+  }
 
   /**
    * Provides completion items for the given position in the document.

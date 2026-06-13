@@ -10,6 +10,17 @@ export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   private readonly log = getLogger();
 
   /**
+   * Registers the hover provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerHoverProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtHoverProvider(),
+    );
+  }
+
+  /**
    * Provides hover information for `robots.txt` files.
    * @param document The text document in which the command was invoked.
    * @param position The position at which the command was invoked.

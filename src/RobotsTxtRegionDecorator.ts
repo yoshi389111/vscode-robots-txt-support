@@ -5,61 +5,61 @@ import { DelayExecutor } from "./utils/DelayExecutor";
 
 /** Provides decorations for regions in robots.txt documents. */
 export class RobotsTxtRegionDecorator implements vscode.Disposable {
-  /** The list of disposables to be cleaned up when the decorator is disposed. */
-  private readonly disposables: vscode.Disposable[] = [];
-  /** The delay executor used to debounce decoration updates. */
-  private readonly delayExecutor = new DelayExecutor();
   /** The decoration type used for disallowed regions. */
-  private readonly disallowedDecorationType =
+  private readonly decorationType =
     vscode.window.createTextEditorDecorationType({
       opacity: "0.7",
     });
 
   /**
-   * Initializes a new instance of the RobotsTxtRegionDecorator class.
-   * Registers event listeners to update decorations when the active editor changes,
-   * when the text selection changes, or when the document changes.
-   * Also performs an initial decoration update for the currently active editor.
+   * Registers the region decorator for `robots.txt` files.
+   * @param delayTime The delay in milliseconds before updating decorations after an event is triggered
+   * @returns A disposable that can be used to unregister the decorator and its listeners
    */
-  constructor() {
-    // Register the decoration type for disallowed paths
-    this.disposables.push(this.disallowedDecorationType);
-
-    const updateDecorations = (editor: vscode.TextEditor) => {
-      this.delayExecutor.execute(() => this.updateDecorations(editor), 100);
+  public static register(delayTime: number): vscode.Disposable {
+    const decorator = new RobotsTxtRegionDecorator();
+    const delayExecutor = new DelayExecutor();
+    const delayExecute = (editor: vscode.TextEditor) => {
+      delayExecutor.execute(
+        () => decorator.updateDecorations(editor),
+        delayTime,
+      );
     };
 
-    vscode.window.onDidChangeTextEditorSelection(
-      (event) => updateDecorations(event.textEditor),
-      null,
-      this.disposables,
-    );
+    const selectionChangeDisposable =
+      vscode.window.onDidChangeTextEditorSelection((event) =>
+        delayExecute(event.textEditor),
+      );
 
-    vscode.window.onDidChangeActiveTextEditor(
+    const editorSwitchDisposable = vscode.window.onDidChangeActiveTextEditor(
       (editor) => {
         if (editor) {
-          updateDecorations(editor);
+          delayExecute(editor);
         }
       },
-      null,
-      this.disposables,
     );
 
-    vscode.workspace.onDidChangeTextDocument(
-      async (event) => {
+    const documentChangeDisposable = vscode.workspace.onDidChangeTextDocument(
+      (event) => {
         const editor = vscode.window.activeTextEditor;
-        if (editor && event.document === editor.document) {
-          updateDecorations(editor);
+        if (event.document === editor?.document) {
+          delayExecute(editor);
         }
       },
-      null,
-      this.disposables,
     );
 
     // Initial decoration update for the currently active editor
     if (vscode.window.activeTextEditor) {
-      updateDecorations(vscode.window.activeTextEditor);
+      delayExecute(vscode.window.activeTextEditor);
     }
+
+    return vscode.Disposable.from(
+      decorator,
+      delayExecutor,
+      selectionChangeDisposable,
+      editorSwitchDisposable,
+      documentChangeDisposable,
+    );
   }
 
   /**
@@ -70,12 +70,12 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
   private async updateDecorations(editor: vscode.TextEditor): Promise<void> {
     const document = editor.document;
     if (document.languageId !== constants.LANGUAGE_ID) {
-      editor.setDecorations(this.disallowedDecorationType, []);
+      editor.setDecorations(this.decorationType, []);
       return;
     }
 
     const ast = await getAst(document).catch((_error) => {
-      editor.setDecorations(this.disallowedDecorationType, []);
+      editor.setDecorations(this.decorationType, []);
       return undefined;
     });
     if (!ast) {
@@ -104,13 +104,11 @@ export class RobotsTxtRegionDecorator implements vscode.Disposable {
         break;
       }
     }
-    editor.setDecorations(this.disallowedDecorationType, disallowedRegions);
+    editor.setDecorations(this.decorationType, disallowedRegions);
   }
 
   /** Disposes of the resources used by the decorator. */
   public dispose(): void {
-    this.delayExecutor.cancel();
-    this.disposables.forEach((d) => d.dispose());
-    this.disposables.length = 0;
+    this.decorationType.dispose();
   }
 }

@@ -8,10 +8,12 @@ import * as vscode from "vscode";
 export class VersionAsyncCache<V> implements vscode.Disposable {
   /** A map that stores the cached values along with their document versions. */
   private readonly cache: Map<string, { version: number; value: Promise<V> }>;
-  /** An array of disposables for cleaning up resources when the cache is disposed. */
-  private readonly disposables: vscode.Disposable[] = [];
+  /** A disposable for cleaning up resources when the cache is disposed. */
+  private readonly disposable: vscode.Disposable;
   /** A function that creates the data for a given document. */
-  private readonly createDataAsync: (document: vscode.TextDocument) => Thenable<V> | V;
+  private readonly createDataAsync: (
+    document: vscode.TextDocument,
+  ) => Thenable<V> | V;
 
   /**
    * Creates a new VersionAsyncCache.
@@ -23,10 +25,12 @@ export class VersionAsyncCache<V> implements vscode.Disposable {
     this.cache = new Map();
     this.createDataAsync = createDataAsync;
 
+    const disposables: vscode.Disposable[] = [];
+
     vscode.workspace.onDidCloseTextDocument(
       (document) => this.deleteByUrl(document.uri),
       null,
-      this.disposables,
+      disposables,
     );
 
     vscode.workspace.onDidRenameFiles(
@@ -34,7 +38,7 @@ export class VersionAsyncCache<V> implements vscode.Disposable {
         event.files.forEach((file) => this.deleteByUrl(file.oldUri));
       },
       null,
-      this.disposables,
+      disposables,
     );
 
     vscode.workspace.onDidDeleteFiles(
@@ -42,8 +46,9 @@ export class VersionAsyncCache<V> implements vscode.Disposable {
         event.files.forEach((file) => this.deleteByUrl(file));
       },
       null,
-      this.disposables,
+      disposables,
     );
+    this.disposable = vscode.Disposable.from(...disposables);
   }
 
   /**
@@ -109,8 +114,7 @@ export class VersionAsyncCache<V> implements vscode.Disposable {
    * Disposes of the cache and all associated resources.
    */
   public dispose(): void {
-    this.disposables.forEach((d) => d.dispose());
-    this.disposables.length = 0;
+    this.disposable.dispose();
     this.cache.clear();
   }
 }

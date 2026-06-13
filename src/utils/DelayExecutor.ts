@@ -38,4 +38,8 @@ export class DelayExecutor {
       this.timeout = null;
     }
   }
+
+  public dispose() {
+    this.cancel();
+  }
 }

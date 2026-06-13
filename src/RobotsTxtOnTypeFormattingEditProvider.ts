@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { formatLine } from "./RobotsTxtFormatter";
+import * as constants from "./data/constants";
 import { parseLine } from "./parser/lineParser";
+import { formatLine } from "./RobotsTxtFormatter";
 import { getLogger } from "./utils/logger";
 
 /** Provides formatting edits after a specific character is typed in robots.txt documents. */
@@ -9,6 +10,18 @@ export class RobotsTxtOnTypeFormattingEditProvider
 {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the on-type formatting edit provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerOnTypeFormattingEditProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtOnTypeFormattingEditProvider(),
+      "\n", // Trigger on newline character
+    );
+  }
 
   /**
    * Provides formatting edits after a specific character is typed.
