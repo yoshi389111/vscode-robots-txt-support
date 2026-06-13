@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { parseLine, ParsedLine, splitTokens } from "./parser/lineParser";
-import { Span, isEmptySpan } from "./parser/span";
-import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
 import { CRAWLER_LOOKUP } from "./data/crawlerInfo";
+import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
+import { ParsedLine, parseLine, splitTokens } from "./parser/lineParser";
+import { Span, isEmptySpan } from "./parser/span";
 
 type State = "empty" | "comment" | "global" | "in-user-agent" | "user-agent";
 

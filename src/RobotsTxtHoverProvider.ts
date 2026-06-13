@@ -1,13 +1,24 @@
 import * as vscode from "vscode";
-import { parseLine } from "./parser/lineParser";
 import * as constants from "./data/constants";
 import { DIRECTIVE_LOOKUP } from "./data/directiveInfo";
+import { parseLine } from "./parser/lineParser";
 import { getLogger } from "./utils/logger";
 
 /** Provides hover information for `robots.txt` files. */
 export class RobotsTxtHoverProvider implements vscode.HoverProvider {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the hover provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerHoverProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtHoverProvider(),
+    );
+  }
 
   /**
    * Provides hover information for `robots.txt` files.

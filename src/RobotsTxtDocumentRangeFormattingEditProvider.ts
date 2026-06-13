@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
 import { formatRange } from "./RobotsTxtFormatter";
 import { getLogger } from "./utils/logger";
 
@@ -8,6 +9,17 @@ export class RobotsTxtDocumentRangeFormattingEditProvider
 {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the document range formatting edit provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerDocumentRangeFormattingEditProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtDocumentRangeFormattingEditProvider(),
+    );
+  }
 
   /**
    * Provides formatting edits for a specific range in the document.

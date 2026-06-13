@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
 import { getAst } from "./RobotsTxtAstAsyncCache";
 import { getLogger } from "./utils/logger";
 
@@ -8,6 +9,17 @@ export class RobotsTxtFoldingRangeProvider
 {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the folding range provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerFoldingRangeProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtFoldingRangeProvider(),
+    );
+  }
 
   /**
    * Provides folding ranges for the given document.

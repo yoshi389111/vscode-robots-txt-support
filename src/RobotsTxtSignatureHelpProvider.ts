@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
+import * as constants from "./data/constants";
+import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { parseLine, splitTokenWithLimit } from "./parser/lineParser";
 import { Span } from "./parser/span";
-import { DIRECTIVE_LOOKUP, DirectiveInfo } from "./data/directiveInfo";
 import { getLogger } from "./utils/logger";
 
 /** Provides signature help for `robots.txt` directives. */
@@ -10,6 +11,19 @@ export class RobotsTxtSignatureHelpProvider
 {
   /** The logger instance. */
   private readonly log = getLogger();
+
+  /**
+   * Registers the signature help provider for `robots.txt` files.
+   * @returns A disposable that can be used to unregister the provider
+   */
+  public static register(): vscode.Disposable {
+    return vscode.languages.registerSignatureHelpProvider(
+      constants.LANGUAGE_ID,
+      new RobotsTxtSignatureHelpProvider(),
+      " ",
+      ":",
+    );
+  }
 
   /**
    * Provides signature help for `robots.txt` directives based on the current cursor position.
