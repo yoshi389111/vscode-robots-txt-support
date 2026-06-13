@@ -19,7 +19,7 @@ export class RobotsTxtCompletionItemProvider
 
   /**
    * Registers the completion item provider for `robots.txt` files.
-   * @return A disposable that can be used to unregister the provider
+   * @returns A disposable that can be used to unregister the provider
    */
   public static register(): vscode.Disposable {
     return vscode.languages.registerCompletionItemProvider(
